@@ -1,0 +1,11 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "build": {
+    "beforeBuildCommand": "node scripts/opencourant.mjs unpack && npm run wasm && npx vite build"
+  },
+  "bundle": {
+    "resources": {
+      "resources/opencourant/": "opencourant/"
+    }
+  }
+}

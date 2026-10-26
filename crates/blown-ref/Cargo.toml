@@ -1,0 +1,10 @@
+[package]
+name = "blown-ref"
+description = "Runs the Reference solver (OpenCourant) on a BlownSim mesh"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+blown-core = { path = "../blown-core" }
+serde = { version = "1.0.229", features = ["derive"] }

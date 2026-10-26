@@ -1,0 +1,10 @@
+[package]
+name = "blown-dwg"
+description = "DWG → DXF for the outline import (desktop app: Import dialog and drag-and-drop)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+# MPL-2.0, used unmodified (source on crates.io).
+acadrust = { version = "0.6.7", default-features = false }

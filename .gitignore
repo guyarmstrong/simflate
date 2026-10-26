@@ -1,0 +1,31 @@
+# build output
+/target/
+/node_modules/
+/dist/
+/src-tauri/target/
+/src-tauri/gen/
+
+# simulation runs (regenerate with blown-cli)
+/runs/*
+!/runs/.gitkeep
+
+# SketchUp SDK is downloaded by hand and must not be committed
+/vendor/sketchup-sdk/
+
+# generated wasm
+/ui/public/blown_wasm.wasm
+
+*.log
+.DS_Store
+Thumbs.db
+~$*
+
+# reference-solver models and results (regenerate with reference/kit_deck.py)
+/ref/
+
+# Reference solver unpacked from vendor/opencourant for the Windows build
+/src-tauri/resources/opencourant/
+
+# Guy's own test exports (not for the repository)
+samples/Test Keyshot OBJ/
+samples/Test save.simflate

@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.docx binary
+*.png binary
+*.wasm binary
+*.cmd text eol=crlf
+*.hdr binary
+*.exr binary

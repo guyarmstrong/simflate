@@ -1,0 +1,3688 @@
+/* Simflate — near-black workspace with light linework. */
+
+:root {
+  --bg: #060708;
+  --canvas: #08090b;
+  --panel: #0d0f12;
+  --panel-2: #13161a;
+  --panel-3: #1a1e23;
+  --border: #1d2127;
+  --border-2: #2a3037;
+  --text: #e6e9ed;
+  --text-2: #aab1ba;
+  --text-3: #6d7580;
+  --accent: #7cc4ff;       /* selection, primary actions */
+  --accent-ink: #04121f;
+  --dim: #8ee6d2;          /* dimensions */
+  --shape: #eef1f4;        /* outlines */
+  --weld: #ff9a62;         /* weld seam */
+  --plate: #f2c48d;        /* plates */
+  --bad: #ff6b6b;
+  --ok: #7fd99a;
+  --radius: 7px;
+  --font: 'Inter Variable', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* Numbers and values: Inter with even-width digits (Guy: no typewriter font). */
+  --mono: var(--font);
+  --code: 'Cascadia Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.4 var(--font);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+input {
+  font: inherit;
+  color: var(--text);
+}
+
+code {
+  font-family: var(--code);
+  font-size: 11px;
+  color: var(--text-2);
+  background: var(--panel-3);
+  padding: 1px 4px;
+  border-radius: 4px;
+  user-select: text;
+}
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.app {
+  display: grid;
+  grid-template-rows: 48px 1fr;
+  /* minmax(0, …): the window never grows to fit the bars — they give way instead. */
+  grid-template-columns: minmax(0, 1fr);
+  height: 100%;
+}
+
+.workspace {
+  display: flex;
+  min-height: 0;
+}
+
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--canvas);
+}
+
+/* ── Top bar ────────────────────────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 12px 0 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.brand-mark {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #c9ced6 30%, #6b737e 70%, #2b3036 100%);
+  box-shadow: 0 0 0 1px #ffffff22 inset;
+}
+
+.steps {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.steps button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  background: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.steps button:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+
+.steps button.on {
+  color: var(--text);
+  background: var(--panel-3);
+  border-color: var(--border-2);
+}
+
+.step-n {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  border: 1px solid var(--border-2);
+  color: var(--text-3);
+}
+
+.steps button.on .step-n {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-2);
+  background: var(--panel-3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: #3a424b;
+  background: #20252b;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn.ghost {
+  background: none;
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #9dd3ff;
+  border-color: #9dd3ff;
+}
+
+.btn.big {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--panel-3);
+  color: var(--text);
+}
+
+.icon-btn.on {
+  color: var(--accent);
+  background: #7cc4ff14;
+  border-color: #7cc4ff40;
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.icon-btn-label {
+  font-size: 12px;
+}
+
+/* ── Tool palette ───────────────────────────────────────────────────────── */
+.palette {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  width: 88px;
+  flex: none;
+  padding: 10px 8px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.palette h3 {
+  margin: 6px 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.palette h3:not(:first-child) {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.tool {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 2px 5px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tool-label {
+  font-size: 10.5px;
+  line-height: 1.1;
+  color: var(--text-3);
+}
+
+.tool:hover .tool-label,
+.tool.on .tool-label {
+  color: var(--text);
+}
+
+.tool:hover {
+  background: var(--panel-3);
+  color: var(--text);
+}
+
+.tool.on {
+  background: #7cc4ff1a;
+  border-color: #7cc4ff55;
+  color: var(--accent);
+}
+
+.palette-sep {
+  width: 40px;
+  align-self: center;
+  height: 1px;
+  background: var(--border-2);
+  margin: 6px 0;
+}
+
+/* ── Control bar ────────────────────────────────────────────────────────── */
+.controlbar,
+.viewbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.cb-title {
+  font-weight: 600;
+  margin-right: 6px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cb-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border-2);
+}
+
+.cb-hint {
+  color: var(--text-3);
+}
+
+.cb-spacer {
+  flex: 1;
+}
+
+/* ── Number field ───────────────────────────────────────────────────────── */
+.numfield {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-3);
+}
+
+.numfield-label {
+  color: var(--text-2);
+}
+
+.numfield input {
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 5px;
+  border: 1px solid var(--border-2);
+  background: var(--bg);
+  font-family: var(--mono);
+  font-size: 12px;
+  text-align: right;
+  user-select: text;
+}
+
+.numfield input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px #7cc4ff22;
+}
+
+.numfield em {
+  font-style: normal;
+  font-size: 11px;
+  min-width: 14px;
+}
+
+/* ── Drop-down ──────────────────────────────────────────────────────────── */
+.dropdown select {
+  height: 26px;
+  padding: 0 24px 0 9px;
+  border-radius: 5px;
+  border: 1px solid var(--border-2);
+  background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23aab1ba' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.dropdown select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px #7cc4ff22;
+}
+
+.dropdown option {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.dropdown option:disabled {
+  color: var(--text-3);
+}
+
+/* ── 2D editor ──────────────────────────────────────────────────────────── */
+.editor2d {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.editor2d svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.grid-minor {
+  stroke: #ffffff08;
+  stroke-width: 1;
+}
+
+.grid-major {
+  stroke: #ffffff12;
+  stroke-width: 1;
+}
+
+.axis {
+  stroke: #ffffff1f;
+  stroke-width: 1;
+}
+
+.piece-fill {
+  fill: #ffffff07;
+}
+
+.shape {
+  fill: none;
+  stroke: var(--shape);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.shape.selected {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.shape.bad {
+  stroke: var(--bad);
+  stroke-dasharray: 6 4;
+}
+
+.shape.ghost {
+  stroke: var(--accent);
+  stroke-dasharray: 4 4;
+  opacity: 0.85;
+}
+
+.ghost-size {
+  fill: var(--accent);
+  font: 12px var(--mono);
+}
+
+.selection rect:first-child {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.7;
+}
+
+.selection line {
+  stroke: var(--accent);
+  opacity: 0.6;
+}
+
+.selection .handle {
+  fill: var(--bg);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.selection .knob {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.marquee {
+  fill: #7cc4ff10;
+  stroke: var(--accent);
+  stroke-dasharray: 3 3;
+}
+
+.dims line {
+  stroke: var(--dim);
+  stroke-width: 1;
+}
+
+.dims polygon {
+  fill: var(--dim);
+}
+
+.dim-label {
+  cursor: text;
+}
+
+.dim-label rect {
+  fill: var(--canvas);
+  stroke: #8ee6d255;
+}
+
+.dim-label text {
+  fill: var(--dim);
+  font: 600 12px var(--mono);
+}
+
+.dim-label:hover rect {
+  stroke: var(--dim);
+  fill: #0c1513;
+}
+
+.dims-faint {
+  opacity: 0.55;
+}
+
+.dim-input {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 92px;
+  height: 26px;
+  border-radius: 5px;
+  border: 1px solid var(--dim);
+  background: #0c1513;
+  color: var(--dim);
+  font: 600 12px var(--mono);
+  text-align: center;
+  box-shadow: 0 0 0 4px #8ee6d222, 0 8px 24px #000a;
+  user-select: text;
+}
+
+.dim-input:focus {
+  outline: none;
+}
+
+.empty-hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--text-3);
+  pointer-events: none;
+  line-height: 1.7;
+}
+
+.empty-hint b {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.statusbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 12px;
+  font: 11px var(--mono);
+  color: var(--text-3);
+  background: linear-gradient(transparent, #060708cc);
+  pointer-events: none;
+}
+
+.statusbar .hint {
+  margin-left: auto;
+  font-family: var(--font);
+}
+
+/* ── Dialog ─────────────────────────────────────────────────────────────── */
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+.dialog {
+  position: fixed;
+  width: 240px;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border-2);
+  box-shadow: 0 16px 48px #000c;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dialog h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.field {
+  display: grid;
+  /* minmax(0, …) + min-width 0: a text box's built-in width otherwise
+     pushes the unit outside the dialog. */
+  grid-template-columns: 70px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-2);
+}
+
+.field input {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-2);
+  background: var(--bg);
+  font-family: var(--mono);
+  text-align: right;
+  user-select: text;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.field em {
+  font-style: normal;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* ── Right panel ────────────────────────────────────────────────────────── */
+.panel {
+  width: 340px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.panel section {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  min-height: 24px;
+}
+
+/* A heading with nothing under it (a switch or a field in the row) needs no gap. */
+.panel-head:last-child {
+  margin-bottom: 0;
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-2);
+}
+
+.panel-head .value {
+  font: 12px var(--mono);
+  color: var(--text-2);
+}
+
+.panel-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.panel-foot {
+  margin-top: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Always in reach: pinned to the bottom of the scrolling panel (Guy). */
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+}
+
+.muted {
+  color: var(--text-3);
+  margin: 0;
+}
+
+.small {
+  font-size: 11px;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.shape-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.shape-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--text-2);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.shape-list li:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.shape-list li.on {
+  background: #7cc4ff12;
+  border-color: #7cc4ff40;
+  color: var(--text);
+}
+
+.shape-list li.bad {
+  color: var(--bad);
+}
+
+.shape-list .name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shape-list .size {
+  font: 11px var(--mono);
+  color: var(--text-3);
+}
+
+.shape-list.runs {
+  max-height: none;
+}
+
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0 0 6px;
+}
+
+.check svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.check.ok {
+  color: var(--ok);
+}
+
+.check.bad {
+  color: var(--bad);
+  cursor: pointer;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+/* Presets: six chips in two even rows of three. */
+.chips.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.chip.static {
+  cursor: default;
+}
+
+.chip.static:not(.on) {
+  opacity: 0.45;
+}
+
+.preset-name {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: var(--text-2);
+}
+
+.chips.grid3 .chip {
+  padding: 5px 4px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  color: var(--text);
+  border-color: #3a424b;
+}
+
+.chip.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* Slider row: bar + typed value on one line, end labels under the bar. */
+.row-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.row-field .slider {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-field > .numfield {
+  margin-top: -2px; /* centre the 26 px box on the 22 px bar */
+}
+
+.row-field > .numfield em {
+  width: 20px; /* same unit space on every row, so the boxes line up */
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.stack .numfield {
+  justify-content: space-between;
+}
+
+.stack .numfield-label {
+  flex: 1;
+}
+
+.sub-label {
+  color: var(--text-2);
+  margin-bottom: -4px;
+}
+
+.disclosure {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+
+.disclosure + .stack {
+  margin-top: 10px;
+}
+
+.stale {
+  margin: 0;
+  color: var(--plate);
+  font-size: 12px;
+}
+
+/* ── Slider ─────────────────────────────────────────────────────────────── */
+.slider input[type='range'],
+.scrub {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+  --fill: 0%;
+}
+
+.slider input[type='range']::-webkit-slider-runnable-track,
+.scrub::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(to right, var(--accent) var(--fill), var(--panel-3) var(--fill));
+}
+
+.slider input[type='range']::-webkit-slider-thumb,
+.scrub::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--text);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--border-2);
+}
+
+.slider input[type='range']::-moz-range-track,
+.scrub::-moz-range-track {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--panel-3);
+}
+
+.slider input[type='range']::-moz-range-progress,
+.scrub::-moz-range-progress {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--accent);
+}
+
+.slider-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: -2px;
+}
+
+/* ── Segmented & toggle ─────────────────────────────────────────────────── */
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+}
+
+.segmented button {
+  border: none;
+  background: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  color: var(--text-3);
+  cursor: pointer;
+}
+
+.segmented.small button {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+
+.segmented button:hover {
+  color: var(--text);
+}
+
+.segmented button.on {
+  background: var(--panel-3);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--border-2);
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-2);
+}
+
+.toggle input {
+  display: none;
+}
+
+.toggle .track {
+  width: 30px;
+  height: 17px;
+  border-radius: 999px;
+  background: var(--panel-3);
+  border: 1px solid var(--border-2);
+  position: relative;
+  transition: background 0.15s;
+}
+
+.toggle .thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--text-2);
+  transition: transform 0.15s;
+}
+
+.toggle input:checked + .track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle input:checked + .track .thumb {
+  transform: translateX(13px);
+  background: var(--accent-ink);
+}
+
+/* ── 3D view ────────────────────────────────────────────────────────────── */
+.viewbar {
+  justify-content: space-between;
+}
+
+.viewport-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.viewport3d {
+  position: absolute;
+  inset: 0;
+}
+
+.viewport3d canvas {
+  display: block;
+}
+
+.view-hint,
+.view-error {
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #0d0f12e6;
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  pointer-events: none;
+}
+
+.view-error {
+  color: var(--bad);
+  border-color: #ff6b6b66;
+}
+
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 12px;
+  /* The readouts drop out as the 3D view narrows (see "Smaller windows"). */
+  container-type: inline-size;
+  overflow: hidden;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+}
+
+.timeline .transport {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* The whole run: a faint line; the recorded part on top of it, scrubbable. */
+.scrub-track {
+  flex: 1;
+  min-width: 120px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(var(--panel-3), var(--panel-3)) left center / 100% 2px no-repeat;
+}
+.scrub-loaded {
+  min-width: 14px;
+}
+.timeline .scrub {
+  display: block;
+}
+.timeline .scrub::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, var(--accent) var(--fill), var(--text-3) var(--fill));
+}
+.timeline .scrub::-moz-range-track {
+  background: var(--text-3);
+}
+
+.icon-btn.play {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--panel-3);
+  color: var(--text);
+}
+
+.status-pill {
+  font-size: 11px;
+  /* one width for every label (Inflating 62% / Settled / Reference 40%…), so the bar doesn't move */
+  min-width: 104px;
+  font-variant-numeric: tabular-nums;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.status-pill.running,
+.status-pill.meshing {
+  color: var(--accent);
+  border-color: #7cc4ff55;
+}
+
+.status-pill.settled {
+  color: var(--ok);
+  border-color: #7fd99a55;
+}
+
+.status-pill.error {
+  color: var(--bad);
+}
+
+.stats {
+  display: flex;
+  gap: 14px;
+  font: 12px var(--mono);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.stats em {
+  font: 11px var(--font);
+  color: var(--text-3);
+  margin-right: 3px;
+}
+
+.gpu-switch.disabled {
+  opacity: 0.4;
+}
+/* Chosen but not active until Simflate restarts. */
+.gpu-switch.pending button.on {
+  outline: 1px dashed var(--accent);
+  outline-offset: -2px;
+}
+
+.toast-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ── Menu & toast ───────────────────────────────────────────────────────── */
+.menu {
+  position: relative;
+}
+
+.menu-list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: 320px;
+  padding: 6px;
+  border-radius: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border-2);
+  box-shadow: 0 16px 48px #000c;
+  z-index: 40;
+}
+
+.menu-list button {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-list button:hover:not(:disabled) {
+  background: var(--panel-3);
+}
+
+.menu-list button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.menu-list em {
+  font-style: normal;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+/* Recent projects: long names end in "…" instead of wrapping; the full
+   name and folder are in the tooltip. */
+.menu-list button.clip em {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.menu-list button.clip > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-note {
+  margin: 4px 10px 6px;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 64px;
+  transform: translateX(-50%);
+  max-width: 560px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--panel-3);
+  border: 1px solid var(--border-2);
+  box-shadow: 0 16px 48px #000c;
+  color: var(--text);
+  z-index: 60;
+  cursor: pointer;
+  padding-right: 40px;
+}
+.toast-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+.select {
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-2);
+  background: var(--bg);
+  color: var(--text-2);
+  font: 12px var(--font);
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ── Mode switch (Shape / Inflate / Snapshots) ──────────────────────────── */
+.modes {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+}
+
+.mode-pill {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #23303d, #1a232c);
+  box-shadow: 0 0 0 1px #7cc4ff66, 0 0 18px #7cc4ff22, inset 0 1px 0 #ffffff14;
+  transition: transform 0.32s cubic-bezier(0.3, 1.25, 0.5, 1), width 0.32s cubic-bezier(0.3, 1.25, 0.5, 1);
+  pointer-events: none;
+}
+
+.modes button {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.modes button:hover {
+  color: var(--text-2);
+}
+
+.modes button.on {
+  color: var(--text);
+}
+
+.modes button.on svg {
+  color: var(--accent);
+}
+
+.mode-count {
+  font: 600 10px var(--mono);
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--panel-3);
+  color: var(--text-2);
+}
+
+/* ── Look palette (left in the 3D views) ───────────────────────────────── */
+.look-palette {
+  width: 88px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 10px 8px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.look-palette h3 {
+  margin: 6px 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.look-palette h3:not(:first-child) {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.look {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 2px 4px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.look:hover {
+  background: var(--panel-2);
+  color: var(--text-2);
+}
+
+.look.on {
+  background: #7cc4ff12;
+  border-color: #7cc4ff55;
+  color: var(--text);
+}
+
+.look-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px #ffffff26, 0 2px 6px #0008;
+  transition: transform 0.15s;
+}
+
+/* Finish + Colour, then Pattern and below: one column normally… */
+.look-col {
+  display: contents;
+}
+.look-more > h3:first-child {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* Short windows (useFitColumn): smaller, then two columns, then scroll. */
+.look-palette[data-fit='small'] .look,
+.look-palette[data-fit='two'] .look {
+  padding: 2px 2px 1px;
+  gap: 1px;
+}
+.look-palette[data-fit='small'] .look-swatch,
+.look-palette[data-fit='two'] .look-swatch {
+  width: 22px;
+  height: 22px;
+}
+.look-palette[data-fit='small'] .look-label,
+.look-palette[data-fit='two'] .look-label {
+  font-size: 10px;
+}
+.look-palette[data-fit='small'] h3:not(:first-child),
+.look-palette[data-fit='small'] .look-more > h3:first-child,
+.look-palette[data-fit='two'] h3:not(:first-child) {
+  margin-top: 4px;
+  padding-top: 5px;
+}
+/* …side by side: Finish + Colour beside the drawing, Pattern and below
+   in the outer column (Guy). */
+.look-palette[data-fit='two'] {
+  width: 160px;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  gap: 6px;
+}
+.look-palette[data-fit='two'] .look-more > h3:first-child {
+  margin-top: 6px;
+  padding-top: 0;
+  border-top: 0;
+}
+.look-palette[data-fit='two'] .look-col {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.look-palette[data-fit='two'] .look-flyout {
+  left: 168px;
+}
+
+/* Rendered finish balls: the ball's own shading, no flat ring or drop shadow. */
+.look-swatch.look-ball {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  width: 32px;
+  height: 32px;
+  margin: -2px;
+  filter: drop-shadow(0 2px 3px #000a);
+}
+.look.on .look-swatch.look-ball {
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--panel), 0 0 0 2px var(--accent);
+}
+
+.look:hover .look-swatch {
+  transform: scale(1.06);
+}
+
+.look.on .look-swatch {
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px var(--accent), 0 2px 8px #0009;
+}
+
+.look-label {
+  font-size: 10.5px;
+  line-height: 1.1;
+}
+
+.look-flyout {
+  position: fixed;
+  left: 96px;
+  z-index: 30;
+  width: 252px;
+  padding: 10px 12px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--border-2);
+  border-radius: 12px;
+  box-shadow: 0 18px 50px #000c;
+  animation: flyin 0.16s ease-out;
+}
+
+/* Pattern flyout: a grid of pattern balls. */
+.look-flyout.wide {
+  width: 288px;
+}
+.pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.pattern-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 2px 4px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+.pattern-pick:hover {
+  background: var(--panel-3);
+}
+.pattern-pick.on {
+  border-color: #7cc4ff55;
+  background: #7cc4ff12;
+  color: var(--text);
+}
+
+/* Colour: Silver + five coats, a 3 x 2 grid under the finishes (Guy). */
+.coat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 20px);
+  justify-content: center;
+  gap: 6px;
+  padding-top: 2px;
+}
+.coat-sq {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px #ffffff26, 0 2px 4px #0008;
+  transition: transform 0.15s;
+}
+.coat-sq.silver {
+  background: linear-gradient(135deg, #ffffff 0%, #cfd3d8 40%, #8d949d 75%, #e6e9ec 100%);
+}
+.coat-sq:hover {
+  transform: scale(1.08);
+}
+.coat-sq.on {
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px var(--accent), 0 2px 6px #0009;
+}
+.coat-name {
+  display: block;
+  text-align: center;
+  margin-top: 3px;
+  color: var(--text-3);
+}
+
+@keyframes flyin {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+}
+
+.look-flyout-head .btn {
+  margin-left: auto;
+  margin-right: 4px;
+}
+.look-flyout-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.cpick {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cpick-square {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  cursor: crosshair;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.cpick-white,
+.cpick-black {
+  position: absolute;
+  inset: 0;
+}
+
+.cpick-white {
+  background: linear-gradient(90deg, #fff, #fff0);
+}
+
+.cpick-black {
+  background: linear-gradient(0deg, #000, #0000);
+}
+
+.cpick-knob {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #0009, 0 2px 6px #0008;
+  pointer-events: none;
+}
+
+.cpick-hue {
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.cpick-hue-knob {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #0009;
+  pointer-events: none;
+}
+
+.cpick-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cpick-chip {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 1px #ffffff26;
+}
+
+.cpick-hex {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--border-2);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--text);
+  font: 12px var(--mono);
+  text-transform: lowercase;
+}
+
+.cpick-presets,
+.tone-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.cpick-preset,
+.tone-presets button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #ffffff30;
+  cursor: pointer;
+}
+
+.tone-presets {
+  margin-top: 10px;
+}
+
+/* Presets with their names: spaced out, three to a row. */
+.cpick-presets.labelled {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 4px;
+}
+.cpick-named {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-3);
+  font: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+.cpick-named:hover,
+.cpick-named.on {
+  color: var(--text);
+}
+.cpick-named .cpick-preset {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+.cpick-named.on .cpick-preset {
+  box-shadow: 0 0 0 2px var(--panel-2), 0 0 0 3px var(--accent);
+}
+
+.cpick-preset.on,
+.tone-presets button.on {
+  box-shadow: 0 0 0 2px var(--panel-2), 0 0 0 3px var(--accent);
+}
+
+.tone-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tone-tabs button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  border: 1px solid var(--border-2);
+  border-radius: 7px;
+  background: none;
+  color: var(--text-2);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.tone-tabs button.on {
+  border-color: #7cc4ff77;
+  background: #7cc4ff14;
+  color: var(--text);
+}
+
+.tone-tabs span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px #ffffff40;
+}
+
+/* ── View bar ──────────────────────────────────────────────────────────── */
+.viewbar-title {
+  color: var(--text-2);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.snap-btn {
+  padding: 4px 11px;
+  font-size: 12px;
+  border-color: #7cc4ff55;
+  color: var(--accent);
+  background: #7cc4ff10;
+}
+
+.view-hint.subtle {
+  top: auto;
+  bottom: 18px;
+  color: var(--text-3);
+}
+
+.mesh-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+.mesh-row .sub-label {
+  margin: 0;
+}
+
+/* ── Snapshots ─────────────────────────────────────────────────────────── */
+.panel section.grow {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.snap-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 8px;
+  text-align: center;
+  color: var(--text-3);
+}
+
+.snap-empty p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.snap-empty b {
+  color: var(--text-2);
+}
+
+.snap-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.snap {
+  position: relative;
+  border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: var(--panel-2);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.snap:hover {
+  border-color: #3a424b;
+}
+
+.snap.on {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Snapshot card: a black "screen" the old picture's size, the picture
+   floating on its right at its own shape and fading into the black, the
+   words on the left; the reuse buttons underneath (Guy). */
+.snap-screen {
+  position: relative;
+  height: 76px; /* title + three lines, no spare line (Guy) */
+  background: var(--canvas);
+  overflow: hidden;
+}
+
+.snap-screen img {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 132px;
+  aspect-ratio: auto;
+  object-fit: cover; /* crops the empty sides, never stretches */
+  /* fade the left edge into the screen */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 30%);
+  mask-image: linear-gradient(to right, transparent 0, #000 30%);
+}
+
+.snap-text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* stops where the picture starts, so the words never run onto it */
+  width: calc(100% - 132px);
+  box-sizing: border-box;
+  padding: 6px 6px 6px 10px;
+  gap: 1px;
+  text-shadow: 0 1px 3px #000;
+}
+
+.snap-name {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.snap-name-input {
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 5px;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  user-select: text;
+}
+
+.snap-meta {
+  font-size: 11px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.snap-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.snap:hover .snap-actions,
+.snap.on .snap-actions {
+  opacity: 1;
+}
+
+.snap-actions .icon-btn {
+  background: #0d0f12d9;
+  border-color: var(--border-2);
+}
+
+/* ── Weld lines, construction geometry, snapping ───────────────────────── */
+.shape.weldline {
+  stroke: var(--weld);
+  stroke-width: 1.8;
+  fill: none;
+}
+
+.shape.construction {
+  stroke: #8a929c;
+  stroke-dasharray: 6 4;
+  stroke-width: 1;
+  fill: none;
+  opacity: 0.8;
+}
+
+.shape.construction.selected {
+  stroke: var(--accent);
+}
+
+.snap rect,
+.snap circle {
+  fill: none;
+  stroke: var(--dim);
+  stroke-width: 1.5;
+}
+
+.snap text {
+  fill: var(--dim);
+  font: 10px var(--font);
+}
+
+.role-seg {
+  display: flex;
+  margin: 0 0 10px;
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.role-seg button {
+  flex: 1;
+  height: 28px;
+  border: none;
+  background: none;
+  color: var(--text-2);
+  font: 12px var(--font);
+  cursor: pointer;
+}
+
+.role-seg button + button {
+  border-left: 1px solid var(--border-2);
+}
+
+.role-seg button.on {
+  background: #7cc4ff1a;
+  color: var(--accent);
+}
+
+.shape-list li.construction .name {
+  color: var(--text-3);
+  font-style: italic;
+}
+
+/* ── Project name + File menu ──────────────────────────────────────────── */
+.project-name {
+  margin-left: 14px;
+  padding-left: 14px;
+  border-left: 1px solid var(--border-2);
+  color: var(--text-2);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.project-name em {
+  font-style: normal;
+  color: var(--text-3);
+  margin-left: 4px;
+}
+
+.dirty-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 7px;
+  border-radius: 50%;
+  background: var(--weld);
+  vertical-align: middle;
+}
+
+.menu-list .menu-sep {
+  border-top: 1px solid var(--border);
+}
+
+.shape.weldline.selected {
+  stroke: var(--accent);
+}
+
+/* ── Line types dialog (imported layers / colours) ─────────────────────── */
+.dialog-backdrop.dim {
+  background: #000a;
+}
+
+.dialog.line-types {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 760px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: 18px;
+}
+
+.line-types .lt-body {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.lt-preview {
+  flex: none;
+  background: var(--bg, #0b0d10);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.lt-preview .shape {
+  cursor: pointer;
+  stroke-width: 1.4;
+}
+
+.lt-preview .shape.left-out {
+  stroke: #ffffff1f;
+  stroke-dasharray: 2 4;
+}
+
+.lt-list {
+  flex: 1;
+  min-width: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 300px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lt-list li {
+  padding: 8px 10px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.lt-list li.hot {
+  border-color: var(--accent);
+}
+
+.lt-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.lt-head .swatch {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid #fff3;
+}
+
+.lt-head .name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lt-head .size {
+  margin-left: auto;
+  color: var(--text-3);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.role-seg.four button {
+  font-size: 11px;
+  padding: 0 4px;
+}
+
+.line-types .check {
+  margin: 4px 0 0;
+}
+
+@media (max-width: 720px) {
+  .line-types .lt-body {
+    flex-direction: column;
+  }
+}
+
+.role-tools {
+  display: flex;
+  gap: 6px;
+  margin: -4px 0 10px;
+}
+
+.role-tools .btn {
+  flex: 1;
+  height: 26px;
+  font-size: 11px;
+  gap: 5px;
+}
+
+/* ── Weld switch in the materials palette ─────────────────────────────── */
+.weld-swatch {
+  /* Flat close-up of a TIG seam (drawn in LookPalette's weldSwatch). */
+  background-size: cover;
+}
+
+.look.toggle:not(.on) .weld-swatch {
+  filter: grayscale(0.85) brightness(0.6);
+}
+
+.look:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ── Brushed / heat-tint settings flyouts ──────────────────────────────── */
+.finish-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 232px;
+}
+
+.finish-opts > label {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.finish-opts label b {
+  font-weight: 500;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.finish-opts .muted {
+  margin: 8px 0 0;
+}
+
+/* ── Align buttons (2+ shapes selected) ────────────────────────────────── */
+.cb-align {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.cb-align .icon-btn.gap {
+  margin-left: 8px;
+}
+
+/* ── Menu bar (File, Edit) and undo / redo at the top left ─────────────── */
+.brand-name {
+  margin-right: 6px;
+}
+
+.menubar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border-2);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.menubar-btn {
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-2);
+  font: 13px var(--font);
+  cursor: pointer;
+}
+
+.menubar-btn:hover,
+.menubar-btn.on {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.menu.left .menu-list {
+  left: 0;
+  right: auto;
+}
+
+.undo-redo {
+  display: flex;
+  gap: 2px;
+  padding-left: 6px;
+}
+
+.menu-hr {
+  margin: 4px 6px;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* Render mode (Snapshots → Render) */
+.viewport3d {
+  overflow: hidden;
+}
+.viewport3d.see-through {
+  background: repeating-conic-gradient(#2a2c31 0% 25%, #1d1f23 0% 50%) 0 0 / 22px 22px;
+}
+.render-frame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+  outline: 1px solid rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+.render-section {
+  border-top: 1px solid var(--border);
+  /* Fills the panel; the Render button sits at the bottom (Guy: no scrolling). */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.render-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px 0 6px;
+  flex: 1;
+  min-height: 0;
+}
+.render-foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+}
+.render-body .sub-label {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+.render-row {
+  display: flex;
+  gap: 8px;
+}
+.render-row > * {
+  flex: 1;
+}
+.render-go {
+  margin-top: 8px;
+  justify-content: center;
+}
+.hdri-row {
+  align-items: center;
+}
+.hdri-row > .icon-btn {
+  flex: 0 0 auto;
+}
+.hdri-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Studio picker (Render) */
+.studio-picker {
+  position: relative;
+}
+.studio-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.studio-current {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.studio-current.on,
+.studio-current:hover {
+  border-color: var(--accent);
+}
+.studio-name {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.studio-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 5px;
+  flex: 0 0 auto;
+  background: var(--panel-3);
+  object-fit: cover;
+}
+.studio-menu {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.studio-group {
+  padding: 8px 6px 3px;
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.studio-group:first-child {
+  padding-top: 2px;
+}
+.studio-item {
+  display: flex;
+  align-items: center;
+  border-radius: 5px;
+}
+.studio-item:hover {
+  background: var(--panel-2);
+}
+.studio-item.on {
+  background: var(--panel-3);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.studio-pick {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.studio-remove {
+  margin-right: 4px;
+}
+/* As wide as the studio dropdown between the ◀ ▶ arrows (Guy). */
+.studio-import {
+  width: calc(100% - 68px);
+  margin: 6px 34px 0;
+  justify-content: center;
+}
+
+/* Render progress + frozen preview */
+.render-progress {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.render-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--panel-3);
+  overflow: hidden;
+}
+.render-bar > div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.15s;
+}
+.render-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.render-freeze {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+}
+.render-freeze img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.render-freeze span {
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  transform: translateX(-50%);
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.65);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.hq-badge {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 4;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--text-2);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* Even-width digits everywhere so live numbers do not jitter (the `font:`
+   shorthands above reset this, hence !important). */
+* {
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Reference solver progress (bottom of the Inflate panel). */
+.ref-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ref-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--panel-3);
+  overflow: hidden;
+}
+.ref-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.6s ease;
+}
+
+/* Inflate panel settings the chosen solver ignores (Reference): hidden. */
+.panel section.unused,
+.panel .unused {
+  display: none;
+}
+
+/* Solver picker: the choice that decides the whole panel, so it stands out. */
+.solver-picker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.solver-picker .panel-head {
+  margin-bottom: 0;
+}
+.solver-select {
+  width: 100%;
+  height: 38px;
+  padding: 0 34px 0 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border-2);
+  background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23aab1ba' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  appearance: none;
+  cursor: pointer;
+}
+.solver-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px #7cc4ff22;
+}
+.solver-select option {
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 400;
+}
+.solver-select option:disabled {
+  color: var(--text-3);
+}
+.solver-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.solver-note p {
+  flex: 1;
+}
+.info-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--border-2);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.info-btn:hover,
+.info-btn.on {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+/* Speech bubble under the note, pointing up at the info button. */
+.bubble {
+  position: absolute;
+  top: 100%;
+  left: -4px;
+  right: -4px;
+  z-index: 20;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--border-2);
+  background: var(--panel-2);
+  box-shadow: 0 12px 32px #000a;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.bubble::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: 11px;
+  width: 10px;
+  height: 10px;
+  background: var(--panel-2);
+  border-left: 1px solid var(--border-2);
+  border-top: 1px solid var(--border-2);
+  transform: rotate(45deg);
+}
+.bubble h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--text);
+}
+.bubble p {
+  margin: 0 0 6px;
+}
+.bubble-links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.info-btn svg {
+  display: block;
+}
+
+/* Snapshot cards: the two distinct ways to reuse one (Guy). */
+.snap-buttons {
+  display: flex;
+  gap: 6px;
+  padding: 6px 9px 8px;
+}
+.snap-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-2);
+  background: var(--bg);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.snap-btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.snap-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.snap-file {
+  color: var(--text-2);
+}
+.snap-recent-head {
+  margin-top: 16px;
+}
+.dialog.ask {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 340px;
+  padding: 16px;
+}
+
+/* Timeline readings: each value has a fixed slot with even-width digits,
+   so the numbers climb without anything moving (Guy). */
+.stats b {
+  display: inline-block;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+}
+.stats .w-polygons { min-width: 6ch; }
+.stats .w-frame { min-width: 9ch; }
+.stats .w-pressure { min-width: 8ch; }
+.stats .w-height { min-width: 8ch; }
+.stats .w-volume { min-width: 6ch; }
+.stats .w-plates { min-width: 4ch; }
+.stats .w-stretch { min-width: 5ch; }
+
+/* Inflate panel foot: run and snapshot side by side, half each. */
+.foot-row {
+  display: flex;
+  gap: 8px;
+}
+.foot-row > .btn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* ── Draft tools: one column ───────────────────────────────────────────── */
+.tool-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Still too tall (measured, see useFitColumn): smaller icons and labels… */
+.palette[data-fit='small'] .tool,
+.palette[data-fit='two'] .tool {
+  padding: 3px 2px 2px;
+  gap: 1px;
+}
+.palette[data-fit='small'] .tool svg,
+.palette[data-fit='two'] .tool svg {
+  width: 18px;
+  height: 18px;
+}
+.palette[data-fit='small'] .tool-label,
+.palette[data-fit='two'] .tool-label {
+  font-size: 10px;
+}
+.palette[data-fit='small'] h3,
+.palette[data-fit='two'] h3 {
+  margin-bottom: 2px;
+}
+/* …then two columns side by side; only after that does it scroll. */
+.palette[data-fit='two'] {
+  width: 148px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: start;
+  column-gap: 2px;
+}
+.palette[data-fit='two'] h3 {
+  grid-column: 1 / -1;
+}
+.palette[data-fit='two'] .tool-grid {
+  display: contents;
+}
+
+/* ── Size dialogs and wizards ─────────────────────────────────────────── */
+.dialog-note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-3);
+}
+
+/* The wizards open inside the board, whose own svg is absolutely placed. */
+.dialog svg {
+  position: static;
+}
+
+.dialog-preview {
+  display: block;
+  align-self: center;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.dialog-preview polygon,
+.dialog-preview path {
+  fill: #7cc4ff14;
+  stroke: var(--shape);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+}
+
+.dialog .segmented {
+  align-self: flex-start;
+}
+
+.dialog.wizard {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 460px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: 18px;
+  gap: 10px;
+}
+
+.dialog.wizard > * {
+  flex-shrink: 0;
+}
+
+/* Pebble / star: wide enough for the four Edges buttons, never a sideways scroll bar. */
+.dialog.wizard.star-wizard {
+  width: 520px;
+  overflow-x: hidden;
+}
+
+.dialog.wizard .field {
+  grid-template-columns: 70px 110px 24px;
+}
+
+.dialog.wizard .field.wide {
+  grid-template-columns: 70px minmax(0, 1fr);
+}
+
+.field select {
+  min-width: 0;
+  width: 100%;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 5px;
+  border: 1px solid var(--border-2);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+}
+
+.wiz-text {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border-2);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 20px;
+  user-select: text;
+}
+
+.wiz-text:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.wiz-warn {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-size: 12px;
+  color: #ffc46b;
+}
+
+.wiz-bold.off {
+  opacity: 0.5;
+}
+
+.wiz-size {
+  margin: -4px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.wiz-presets {
+  display: flex;
+  gap: 6px;
+}
+
+.btn.small {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.wiz-add {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.wiz-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.wiz-table th {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-align: left;
+  padding: 0 4px 4px;
+}
+
+.wiz-table td {
+  padding: 2px 4px;
+  color: var(--text-3);
+}
+
+.wiz-table td input:not([type='range']) {
+  width: 64px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 5px;
+  border: 1px solid var(--border-2);
+  background: var(--bg);
+  color: var(--text);
+  text-align: right;
+  user-select: text;
+}
+
+.wiz-table td input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.wiz-egg {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+}
+
+.wiz-egg input {
+  width: 96px;
+  accent-color: var(--accent);
+}
+
+.dim-dot {
+  fill: var(--dim);
+}
+
+/* ── Forms | Render tabs (side by side, like KeyShot's panels) ────────── */
+.panel-tabs {
+  display: flex;
+  flex: none;
+  border-bottom: 1px solid var(--border);
+  padding: 0 8px;
+}
+
+.panel-tabs button {
+  flex: 1;
+  padding: 11px 8px 9px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.panel-tabs button:hover {
+  color: var(--text);
+}
+
+.panel-tabs button.on {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Export tab ───────────────────────────────────────────────────────── */
+.export-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+}
+
+.export-tick {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 8px;
+  padding: 2px 2px 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.export-tick input {
+  accent-color: var(--accent);
+  margin: 0;
+}
+
+.export-tick em {
+  grid-column: 2;
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+.export-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.export-item em {
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+.export-item:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.export-item:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ── Chain link between the dimensions (Adobe-style aspect lock) ───────── */
+.dim-link {
+  cursor: pointer;
+}
+
+.dim-link rect {
+  fill: var(--panel-2);
+  stroke: var(--border-2);
+}
+
+.dim-link svg {
+  color: var(--text-3);
+}
+
+.dim-link:hover rect {
+  stroke: var(--dim);
+}
+
+.dim-link.on svg {
+  color: var(--dim);
+}
+
+/* Unequal triangle: sides and angles in the size box */
+.tri-grid {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 6px 8px;
+  justify-content: start;
+}
+
+.dialog:has(.tri-grid) {
+  width: 356px;
+}
+
+.tri-letter {
+  fill: var(--dim);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Pen tool: the path being drawn. */
+.pen-band {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.pen-anchor {
+  fill: var(--canvas);
+  stroke: var(--accent);
+  stroke-width: 1.2;
+}
+
+.pen-anchor.closing {
+  fill: var(--accent);
+}
+
+.pen-handle line {
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+
+.pen-handle circle {
+  fill: var(--accent);
+}
+
+/* Shape builder: the regions the overlapping shapes make. */
+.build-face {
+  fill: transparent;
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.build-face.hot {
+  fill: color-mix(in srgb, var(--accent) 22%, transparent);
+  stroke-dasharray: none;
+  opacity: 1;
+}
+
+.build-face.hot.erase {
+  fill: color-mix(in srgb, var(--bad) 25%, transparent);
+  stroke: var(--bad);
+}
+
+.undo-redo {
+  align-items: center;
+}
+
+.undo-redo .cb-sep {
+  margin: 0 4px;
+}
+
+/* Save turns the unsaved-changes colour while there is something to save. */
+.save-btn.dirty {
+  color: var(--weld);
+}
+
+/* Small colour square that opens the picker (Render background). */
+.render-row > .cswatch {
+  flex: none;
+}
+
+.cswatch {
+  position: relative;
+  align-self: center;
+}
+
+.cswatch-btn {
+  display: block;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border-2);
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px #0006;
+  cursor: pointer;
+}
+
+.cswatch-btn:hover,
+.cswatch-btn.on {
+  border-color: var(--accent);
+}
+
+.cswatch-pop {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 176px;
+  padding: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border-2);
+  border-radius: 9px;
+  box-shadow: 0 10px 30px #000a;
+}
+
+.cswatch-pop .cpick {
+  gap: 8px;
+}
+
+.cswatch-pop .cpick-square {
+  aspect-ratio: 4 / 3;
+}
+
+/* Recent projects: File menu heading, and the list on the empty board. */
+.menu-head {
+  margin: 4px 10px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.recent-list {
+  margin: 22px auto 0;
+  width: 420px;
+  max-width: 80vw;
+  text-align: left;
+  pointer-events: auto;
+}
+
+.recent-list h4 {
+  margin: 0 0 6px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.recent-list button {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: 'icon name when' 'icon where when';
+  align-items: center;
+  column-gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  text-align: left;
+  cursor: pointer;
+  line-height: 1.35;
+}
+
+.recent-list button:hover {
+  background: var(--panel-2);
+  border-color: var(--border-2);
+  color: var(--text);
+}
+
+.recent-list svg {
+  grid-area: icon;
+  color: var(--text-3);
+}
+
+.recent-name {
+  grid-area: name;
+}
+
+.recent-name em {
+  font-style: normal;
+  color: var(--text-3);
+}
+
+.recent-where {
+  grid-area: where;
+  font-size: 11px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-when {
+  grid-area: when;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.editor2d .recent-list svg {
+  position: static;
+}
+
+/* ── Smaller windows (half screen, laptops) ──────────────────────────────
+   Nothing pushes the right panel off screen: the top bar drops the word
+   mark, shortens the project name and goes icon-only; the bottom bar drops
+   its less-needed readouts; the side panels get a little narrower. */
+.project-name {
+  min-width: 0;
+}
+
+@media (max-width: 1400px) {
+  .brand-name {
+    display: none;
+  }
+  .project-name {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .modes .mode-label,
+  .topbar-right .btn-label {
+    display: none;
+  }
+  .modes button {
+    padding: 6px 14px;
+  }
+  .topbar {
+    gap: 10px;
+  }
+  .panel {
+    width: 300px;
+  }
+}
+
+@media (max-width: 960px) {
+  .panel {
+    width: 270px;
+  }
+  .undo-redo .cb-sep,
+  .undo-redo [data-testid='quick-new'],
+  .undo-redo [data-testid='quick-open'] {
+    display: none;
+  }
+  .project-name {
+    max-width: 140px;
+    margin-left: 8px;
+    padding-left: 8px;
+  }
+}
+
+/* Bottom bar: readouts in order of what goes first. */
+@container (max-width: 1060px) {
+  .stats .s-volume {
+    display: none;
+  }
+}
+@container (max-width: 960px) {
+  .stats .s-plates {
+    display: none;
+  }
+}
+@container (max-width: 860px) {
+  .stats .s-polygons {
+    display: none;
+  }
+  .stats {
+    gap: 10px;
+  }
+}
+@container (max-width: 760px) {
+  .stats .s-stretch {
+    display: none;
+  }
+}
+@container (max-width: 660px) {
+  .stats .s-pressure {
+    display: none;
+  }
+  .status-pill {
+    min-width: 84px;
+  }
+}
+@container (max-width: 540px) {
+  .timeline .transport [data-testid='first-frame'],
+  .timeline .transport [data-testid='last-frame'] {
+    display: none;
+  }
+  .stats em {
+    display: none;
+  }
+}
+
+/* Short windows: the tool columns sit closer. */
+@media (max-height: 860px) {
+  .palette .tool {
+    padding: 4px 2px 3px;
+    gap: 2px;
+  }
+  .palette h3:not(:first-child),
+  .look-palette h3:not(:first-child),
+  .look-more > h3:first-child {
+    margin-top: 4px;
+    padding-top: 6px;
+  }
+  .look {
+    padding: 3px 2px 2px;
+  }
+  .look-swatch {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* ── Compact settings rows (session 16: no scrolling on a desktop screen) ── */
+.panel section.compact {
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.panel section.compact .panel-head {
+  margin-bottom: 2px;
+  min-height: 22px;
+}
+.set-row {
+  display: grid;
+  /* --label-w: the panel's longest label showing (installLabelColumns), at most 140 px. */
+  grid-template-columns: min(var(--label-w, 112px), 140px) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+}
+.set-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.set-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.set-name.two-line {
+  white-space: pre-line;
+  line-height: 1.25;
+}
+.info-tip {
+  display: inline-flex;
+  flex: none;
+  color: var(--text-3);
+  cursor: help;
+}
+.info-tip:hover {
+  color: var(--text);
+}
+.set-ctl {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.set-ctl .row-field {
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+}
+.set-ctl .row-field > .numfield {
+  margin-top: 0;
+}
+.set-ctl .slider-ends {
+  margin-top: -4px;
+  line-height: 1.1;
+  /* Narrow sliders: "Balloon" and "Geometric" ran together. */
+  gap: 6px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.set-ctl .toggle > span:last-child:empty {
+  display: none;
+}
+.chips.row5 {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+.chips.row5 .chip {
+  padding: 4px 0;
+  font-size: 10.5px;
+  letter-spacing: 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+.bubble-note {
+  color: var(--text-2);
+}
+@media (max-width: 1200px) {
+  .set-row {
+    grid-template-columns: min(var(--label-w, 88px), 88px) minmax(0, 1fr);
+  }
+}
+/* After .compact (same weight): hidden settings stay hidden. */
+.panel section.compact.unused,
+.panel .set-row.unused {
+  display: none;
+}
+
+.viewbar .gpu-switch {
+  margin-right: 8px;
+}
+.gpu-label {
+  margin-right: 6px;
+  font-size: 11px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+/* Specified geometric: mesh too coarse for the tucks (session 17). */
+.tuck-warn {
+  margin: 0 0 6px;
+  line-height: 1.35;
+}
+
+/* Inflate panel: put every setting back to its start (session 17). */
+.reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-2);
+  font-size: 11px;
+  cursor: pointer;
+}
+.reset-btn:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.solver-head-btns {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.set-row.wide {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+/* Render panel → Geometry position (session 17). */
+.render-body .position-presets {
+  display: flex;
+}
+.render-body .position-presets button {
+  flex: 1;
+}
+.position-floor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 4px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+/* Tuck width: the chain that scales width, length and valley depth together. */
+.unit-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; /* the unit's space, so the boxes still line up */
+  height: 22px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+}
+.unit-lock:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.unit-lock.on {
+  color: var(--accent);
+}
+/* Render panel: a setting that doesn't apply now (Shadow softness without the ground). */
+.render-body .is-off {
+  opacity: 0.35;
+  pointer-events: none;
+}
+.render-colour-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+/* The square sits at the panel's left now: open the picker into the panel. */
+.render-colour-row .cswatch-pop {
+  left: 0;
+  right: auto;
+}
+
+/* Crash window (CrashReport.tsx): over everything, the start-up screen too. */
+.crash-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(3, 4, 5, 0.78);
+}
+.crash-box {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: 20px 22px;
+  border: 1px solid #2a2f37;
+  border-radius: 10px;
+  background: #0d0f12;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+.crash-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffb86b;
+}
+.crash-head h2 {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text);
+}
+.crash-msg {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #15181d;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+  word-break: break-word;
+}
+.crash-detail {
+  max-height: 220px;
+  overflow: auto;
+  padding: 10px;
+  border-radius: 6px;
+  background: #15181d;
+  color: var(--text-2);
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.crash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.crash-actions .crash-gap {
+  flex: 1;
+}
+.crash-note {
+  flex-basis: 100%;
+  order: 10;
+  min-height: 16px;
+  color: var(--text-3);
+  font-size: 12px;
+}

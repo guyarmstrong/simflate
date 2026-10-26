@@ -1,0 +1,72 @@
+# Builds Windows and macOS installers ON REQUEST only (saves GitHub Actions
+# minutes: macOS minutes count 10x, Windows 2x). Start one with
+#   gh workflow run build.yml --ref v2-thickness
+# or push a version tag (v1.0.0 = Simflate v1.00, see docs/VERSIONS.md). Tests run locally (npm test) before every push.
+# Download installers from the run's "Artifacts" section on GitHub → Actions.
+name: Build installers
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+# Tagged builds attach their installers to a draft release (private until
+# published) so they don't expire like the run's artifacts (90 days).
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --release -p blown-core
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            args: ''
+          - os: macos-latest
+            args: '--target universal-apple-darwin'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.os == 'macos-latest' && 'wasm32-unknown-unknown,aarch64-apple-darwin,x86_64-apple-darwin' || 'wasm32-unknown-unknown' }}
+      - uses: Swatinem/rust-cache@v2
+      - run: npm ci
+      - run: npx tauri build ${{ matrix.args }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Simflate-${{ github.ref_name }}-${{ matrix.os }}
+          path: |
+            target/release/bundle/nsis/*.exe
+            target/release/bundle/msi/*.msi
+            target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          if-no-files-found: warn
+      - name: Keep the installers with the tag (draft release)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: Simflate ${{ github.ref_name }}
+          files: |
+            target/release/bundle/nsis/*.exe
+            target/release/bundle/msi/*.msi
+            target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          fail_on_unmatched_files: false

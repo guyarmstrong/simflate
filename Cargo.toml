@@ -1,0 +1,18 @@
+[workspace]
+resolver = "2"
+members = ["crates/blown-core", "crates/blown-cli", "crates/blown-wasm", "crates/blown-skp", "crates/blown-ref", "crates/blown-dwg", "src-tauri"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "UNLICENSED"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3

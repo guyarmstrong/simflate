@@ -1,0 +1,19 @@
+[package]
+name = "blown-core"
+description = "Meshing, XPBD inflation solver and exporters for BlownSim (no UI dependencies)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+faer = { version = "0.24.4", default-features = false, features = ["std", "sparse"] }
+glam = "0.34.1"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+spade = "2.15.1"
+ttf-parser = "0.25"
+rayon = { version = "1.10", optional = true }
+
+[features]
+# Spread each colour batch of the solver over the CPU's cores (desktop app, CLI).
+parallel = ["dep:rayon"]

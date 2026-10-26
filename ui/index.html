@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simflate</title>
+    <link rel="icon" href="/favicon.png" />
+    <!-- Start-up screen: plain HTML so it shows the moment the window opens,
+         before the app's code has loaded. main.tsx reports each step through
+         window.__splash and fades it out once the app has drawn. -->
+    <style>
+      html, body { margin: 0; background: #060708; }
+      #splash {
+        position: fixed; inset: 0; z-index: 10000;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
+        background: #060708; color: #e6e9ed;
+        font-family: 'Inter Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        transition: opacity 0.45s ease;
+      }
+      #splash.out { opacity: 0; pointer-events: none; }
+      #splash .art { position: relative; width: min(52vh, 420px); aspect-ratio: 1; }
+      #splash .art img { width: 100%; height: 100%; display: block; border-radius: 12%; }
+      #splash .art h1 {
+        position: absolute; inset: 0; margin: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: min(9.5vh, 76px); font-weight: 800; letter-spacing: -0.02em; color: #fff;
+        text-shadow: 0 2px 18px rgba(0, 10, 40, 0.75), 0 0 2px rgba(0, 0, 0, 0.6);
+      }
+      #splash .bar { width: min(52vh, 420px); height: 3px; border-radius: 2px; background: #1a1e24; overflow: hidden; }
+      #splash .bar i { display: block; height: 100%; width: 4%; background: #7cc4ff; border-radius: 2px; transition: width 0.3s ease; }
+      #splash .step { font-size: 13px; color: #aab1ba; min-height: 18px; margin-top: -12px; }
+      #splash .ver { position: absolute; bottom: 18px; font-size: 11px; color: #6d7580; }
+    </style>
+  </head>
+  <body>
+    <div id="splash" role="status" aria-live="polite">
+      <div class="art">
+        <img src="/splash.png" alt="" />
+        <h1>Simflate</h1>
+      </div>
+      <div class="bar"><i id="splash-bar"></i></div>
+      <div class="step" id="splash-step">Starting…</div>
+      <div class="ver">Simflate v%VITE_APP_VERSION%</div>
+    </div>
+    <script>
+      (function () {
+        var shown = Date.now();
+        var el = document.getElementById('splash');
+        // Once per window: if the page reloads itself after the start-up
+        // screen has gone (Guy saw it come back a few seconds later), don't
+        // show it again. Each start is noted (last 10) so a repeat can be traced.
+        try {
+          var nav = (performance.getEntriesByType('navigation')[0] || {}).type || '?';
+          var again = !!sessionStorage.getItem('simflate.splashDone');
+          var log = JSON.parse(localStorage.getItem('simflate.startLog') || '[]');
+          log.push({ t: new Date().toISOString(), nav: nav, again: again });
+          localStorage.setItem('simflate.startLog', JSON.stringify(log.slice(-10)));
+          if (again) { el.remove(); el = null; }
+        } catch (e) {
+          // Storage blocked: the screen shows as usual.
+        }
+        window.__splash = {
+          step: function (text, pct) {
+            if (!el) return;
+            document.getElementById('splash-step').textContent = text;
+            if (pct != null) document.getElementById('splash-bar').style.width = Math.max(4, Math.min(100, pct)) + '%';
+          },
+          // Shown at least a moment, so it reads as a screen and not a flicker.
+          done: function () {
+            if (!el) return;
+            try { sessionStorage.setItem('simflate.splashDone', '1'); } catch (e) {}
+            window.__splash.step('Ready', 100);
+            var wait = Math.max(0, 900 - (Date.now() - shown));
+            setTimeout(function () {
+              el.classList.add('out');
+              setTimeout(function () { if (el) el.remove(); el = null; }, 500);
+            }, wait);
+          },
+          isOpen: function () { return !!el; },
+        };
+        window.__splash.step('Starting…', 8);
+      })();
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

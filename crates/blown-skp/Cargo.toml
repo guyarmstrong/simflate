@@ -1,0 +1,13 @@
+[package]
+name = "blown-skp"
+description = "SketchUp .skp writer via Trimble's SketchUp C SDK (feature-gated: builds without the SDK)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+# Enable once the SDK is in vendor/sketchup-sdk/ (see docs/SKETCHUP_SDK.md).
+sdk = []
+
+[dependencies]
+blown-core = { path = "../blown-core" }

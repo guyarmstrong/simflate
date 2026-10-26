@@ -1,0 +1,4 @@
+HDRIs from Poly Haven (https://polyhaven.com), CC0 / public domain, 2k .hdr:
+Rooms: photo_studio_loft_hall, lebombo, studio_country_hall, photo_studio_london_hall,
+reading_room, lythwood_room, artist_workshop, hotel_room, veranda
+Outdoors: forest_slope, studio_garden, symmetrical_garden_02, chinese_garden, tiergarten

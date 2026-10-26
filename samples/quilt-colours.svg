@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500mm" height="350mm" viewBox="0 0 500 350">
+  <g id="Outline"><rect x="0" y="0" width="500" height="350" rx="40" fill="none" stroke="#000000" stroke-width="1"/></g>
+  <g id="Welds" fill="none" stroke="#e8262a" stroke-width="1">
+    <line x1="250.0" y1="0" x2="250.0" y2="350"/>
+    <line x1="0" y1="175.0" x2="500" y2="175.0"/>
+    <ellipse cx="125.0" cy="87.5" rx="50" ry="35"/><ellipse cx="375.0" cy="87.5" rx="50" ry="35"/>
+    <ellipse cx="125.0" cy="262.5" rx="50" ry="35"/><ellipse cx="375.0" cy="262.5" rx="50" ry="35"/>
+  </g>
+</svg>
