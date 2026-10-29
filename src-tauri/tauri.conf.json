@@ -7,7 +7,7 @@
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1430",
     "beforeDevCommand": "npx vite",
-    "beforeBuildCommand": "npm run wasm && npx vite build"
+    "beforeBuildCommand": "node scripts/check-upstream.mjs && npm run wasm && npx vite build"
   },
   "app": {
     "windows": [

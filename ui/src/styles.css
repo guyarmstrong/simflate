@@ -2261,6 +2261,115 @@ code {
   margin-right: 6px;
 }
 
+/* The logo opens About & diagnostics (click or right-click). */
+.brand-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 4px 2px 2px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+.brand-btn:hover {
+  background: var(--panel-2);
+}
+
+.dialog.diagnostics {
+  top: 44px;
+  left: 12px;
+  width: min(460px, calc(100vw - 24px));
+  max-height: calc(100vh - 60px);
+  overflow: auto;
+  font-weight: normal;
+  letter-spacing: normal;
+}
+.dialog.diagnostics h4 {
+  margin: 8px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.diag-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-2);
+}
+.diag-row b {
+  font-weight: 500;
+  color: var(--text);
+  text-align: right;
+}
+.diag-row b.good {
+  color: var(--ok);
+}
+.diag-row b.bad {
+  color: var(--bad);
+}
+.diag-sub {
+  margin-top: -4px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.linkish {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+.diag-reports {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.diag-reports button {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.diag-reports button:hover,
+.diag-reports button.on {
+  background: var(--panel);
+  color: var(--text);
+}
+.diag-when {
+  flex: none;
+  color: var(--text-3);
+}
+.diag-what {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dialog.diagnostics .dialog-actions {
+  align-items: center;
+}
+.dialog.diagnostics .crash-gap {
+  flex: 1;
+}
+
 .menubar {
   display: flex;
   align-items: center;

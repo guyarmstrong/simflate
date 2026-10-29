@@ -19,9 +19,19 @@ files deleted), the Windows and Mac install notes, and the prompt Guy used
 for Claude Code on his test laptop. **Guy is testing 1.1.1 on the test
 laptop**; Windows comes first, the Mac waits until Windows is ready (Guy).
 
-**Money rule (Guy):** no paid GitHub, no paid signing, no paid tools. GitHub
-Actions free minutes are reserved for **Mac builds only, on request**
-(October's ran out). Build Windows locally.
+**Money rule (Guy):** no paid GitHub, no paid signing, no paid tools. Build
+Windows locally.
+
+**Public copy for free Mac builds (session 22):** `guyarmstrong/simflate`
+(public) holds the current files only, one commit per publish, author
+`200261854+guyarmstrong@users.noreply.github.com` (Guy's gmail is on every
+commit of this private repo, so this one stays private). Publish with
+`node scripts/publish-public.mjs` (committed files only), then
+`gh workflow run build.yml -R guyarmstrong/simflate --ref main` — public
+repos get free Actions minutes, Mac included. Workflow runs only on tags /
+manual start. Before each publish: gitleaks on the exported files (the one
+"generic-api-key" hit in `ui/src/io/recent.ts` is a localStorage key name).
+Mac builds wait until Windows is ready (Guy).
 
 ## Next session — in this order
 
@@ -32,6 +42,36 @@ Actions free minutes are reserved for **Mac builds only, on request**
    Reference starts quickly the 2nd time on the same piece; Task Manager
    shows "Simflate Reference engine" ×4; tool columns fit his short screen.
    Rebuild: `npx tauri build --bundles nsis` (~10 min), copy into Windows\.
+   **Slow starter — CAUSE FOUND (2026-10-30):** OpenCourant
+   `starter/source/model/sets/fill_igr.F` (commit cb760c2) loops
+   `DO I = 1, 10000` twice, `OPEN(... ROOTNAME_NNNN.rad, STATUS='OLD')`
+   for every number 0000–9999, looking for engine files with /DT/NODA,
+   /DYREL, /H3D… keywords. None exist for our LS-DYNA decks → 20,000 failed
+   opens; Trend Micro (tmmon64 hook on NtCreateFile + filter drivers) makes
+   each ~1.5 ms → 30–70 s. Found by stack sampling on the test laptop (49/50
+   samples in NtCreateFile via tmmon64 from CreateFileA; file names counted
+   up 0000→9999 twice). Hashes of our starter / hm_reader / libapr match
+   the test laptop's. Fix options put to Guy: rebuild the starter from
+   source with the loop stopping at the first missing file (Intel oneAPI,
+   free; same patched build needed for the Mac anyway; AGPL → publish the
+   patch), or binary-patch the loop count, and report upstream.
+   **Edited starter (2026-10-30, Guy chose option 2 then report upstream):**
+   the two loop limits are `cmp ebp,2711h` at file offset 0x1A1E89B and
+   `cmp r14d,2711h` at 0x1A1F1AF (immediates at 0x1A1E89D / 0x1A1F1B2,
+   `11270000` → `03000000`); edited SHA-256 4ce51b4e… Checked here: outputs
+   identical (only the 5-byte run stamp at the end of each .rst differs, as
+   between two original runs); a planted model_0500.rad crashes the original
+   (exit 59) and is ignored by the edited one. **But Norton 360 on Guy's
+   laptop holds the unknown edited exe ~21 s at every launch** (the
+   original public release isn't held) — any edited or self-built starter
+   is "unknown" to AV reputation. Kit for the test laptop in the share
+   folder ("Prompt 2 - edited starter.txt"): does Trend hold it too? Only
+   if it's a net win there: apply the edit in `scripts/opencourant.mjs`
+   unpack (check original bytes → patch → check new hash, keep the
+   "already unpacked" check working), note it in SOURCE.md (AGPL), rebuild.
+   Upstream issue posted 2026-10-30: OpenCourant/OpenCourant#67 — watch
+   for a fix; a fixed official release (known to AV) is the cleanest cure.
+   Publisher name stays "Guy Armstrong" (Guy). Signing costs money (no).
 2. **Fast on more cores** (on the to-do list; Guy said not now, wait to be
    asked): here 1 thread 45 s, 6 threads 15 s
    (~80 % parallel; only stretch / bend batches use `par.rs`). Make the
@@ -43,10 +83,8 @@ Actions free minutes are reserved for **Mac builds only, on request**
 3. **Reference engines idle ~25 s** after appearing (they start one by one,
    0 % CPU) — look at Intel MPI start-up. Engines use ~1 core each, not 2;
    pinning made no difference (session 21 benchmarks).
-4. **Mac — after Windows is ready.** Guy heard that a **public** GitHub repo
-   gets free Mac build minutes (true); told him that exposes all the code and
-   the example forms (his designs) — his business call. The free private
-   route is his own Mac:
+4. **Mac — after Windows is ready**: build on the public copy (above). The
+   alternative, if ever needed, is his own Mac:
    **Mac build via Guy's Mac** (all free): Tailscale on the Mac + this
    laptop, Remote Login on the Mac; Guy gives the user name + Tailscale
    name. Then install Xcode CLT (Guy clicks), Homebrew (Guy types password),

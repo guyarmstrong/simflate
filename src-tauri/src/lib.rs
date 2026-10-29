@@ -6,9 +6,11 @@
 
 mod clip;
 mod crash;
+mod diag;
 mod fonts;
 mod gpu;
 mod native;
+mod probe;
 mod reference;
 
 use std::path::PathBuf;
@@ -230,6 +232,7 @@ pub fn run() {
         .manage(native::NativeState::default())
         .setup(|app| {
             crash::set_app(app.handle().clone());
+            probe::start();
             if cfg!(debug_assertions) {
                 app.handle().plugin(tauri_plugin_log::Builder::default().level(log::LevelFilter::Info).build())?;
             }
@@ -241,6 +244,10 @@ pub fn run() {
             save_project,
             open_file,
             dwg_to_dxf,
+            diag::diagnostics,
+            diag::diag_read,
+            diag::diag_save_report,
+            diag::diag_open_folder,
             read_project,
             open_url,
             clip::clipboard_read,

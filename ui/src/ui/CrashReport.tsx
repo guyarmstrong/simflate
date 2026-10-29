@@ -30,7 +30,12 @@ export function reportCrash(err: unknown, where: string, fatal = false) {
   // The first report stays on screen; a fatal one replaces a non-fatal one.
   const now = useCrash.getState().crash;
   if (now && (now.fatal || !fatal)) return;
-  useCrash.setState({ crash: { fatal, where, message: e.message || 'Unknown error', detail: e.stack ?? '', time: new Date().toISOString() } });
+  const crash = { fatal, where, message: e.message || 'Unknown error', detail: e.stack ?? '', time: new Date().toISOString() };
+  useCrash.setState({ crash });
+  // Kept with the engine's reports (logo → About & diagnostics). The engine saves its own.
+  if (isDesktop && where !== 'Engine') {
+    void import('@tauri-apps/api/core').then(({ invoke }) => invoke('diag_save_report', { text: reportText(crash) })).catch(() => undefined);
+  }
 }
 
 /** Catch stray errors anywhere in the page and engine panics (desktop). */

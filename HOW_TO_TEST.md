@@ -244,3 +244,8 @@ What would help most next: **4–6 real DXFs and photos of the finished pieces**
 - **Symmetric** and **Specified geometric** solvers — being built (session 15).
 - Installers are built by GitHub only when asked (to save build minutes) — ask Claude for one.
 - Geometric squares and triangles are still too smooth (no V-tucks); see `docs/HANDOFF.md`.
+
+## About & diagnostics (session 22)
+
+- **Click or right-click the Simflate logo** (top left). The popup shows the version, what the computer is (Windows / Mac), the **file-open check** (green "fine" or red "slow": whether an antivirus would slow OpenCourant's start on this computer; it runs a few seconds after Simflate opens), whether Reference is installed, the OpenCourant release with a link to our issue #67, and **problem reports**: click one to read it, **Copy report** to email it, **Copy summary** for the version and checks, **Folder** to see the files.
+- In the browser preview it only shows the version.

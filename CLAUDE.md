@@ -66,7 +66,9 @@ cargo run --release -p blown-cli -- run --shape square --size 300 --medium --fin
 - All tuning constants live in `config.rs`; add new ones to `Tuning::set` so the CLI can sweep them (`--tune name=value`).
 - UI: near-black theme, Lucide icons, light linework. Keep Guy's UI requests (see `DECISIONS.md` → UI).
 - Commit after each meaningful step, push to `origin v2-thickness` (v2) (private repo guyarmstrong/blownsim).
-- **Save GitHub Actions minutes** (Guy, session 8): pushes do NOT build installers. Run `npm test` locally before pushing; start an installer build only when Guy wants one (or before handing over a release): `gh workflow run build.yml --ref v2-thickness`. Mac minutes count 10×.
+- **Builds** (Guy, session 22): Windows installers are built on this laptop (`npx tauri build --bundles nsis`). Mac builds run on the **public copy** `guyarmstrong/simflate` (free minutes): `node scripts/publish-public.mjs`, then `gh workflow run build.yml -R guyarmstrong/simflate --ref main`. Never publish history or Guy's email; gitleaks the exported files first.
+- **OpenCourant check before every build** (Guy, session 22): `scripts/check-upstream.mjs` runs first in every `tauri build` and STOPS it if OpenCourant issue #67 (starter tries model_0000…9999.rad twice: 30–70 s on antivirus laptops) is closed or a newer release is out. Then: read the release, and if it fixes `fill_igr.F`, repack it (`node scripts/opencourant.mjs pack`), re-test Reference, and tell Guy. Build anyway only after looking: `SIMFLATE_UPSTREAM_CHECKED=1`.
+- **Diagnostics in the app** (Guy, session 22): click / right-click the Simflate logo → About & diagnostics (version, checks, problem reports). Any new detector or debug aid goes there too.
 - **Speed matters as well as accuracy** (Guy, session 8): note run time for every tuning experiment; prefer the change that gets the look at the lowest cost.
 - Commit messages end with the Co-Authored-By line the session gives you.
 

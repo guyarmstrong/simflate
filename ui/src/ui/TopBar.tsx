@@ -16,6 +16,7 @@ import { newId } from '../model/shapes';
 import { illustratorScale, onIllustratorScale, setIllustratorScale } from '../io/clipboard';
 import { buildDxf, buildSvg } from '../io/flatExport';
 import { saveFiles } from '../io/files';
+import { DiagnosticsDialog } from './Diagnostics';
 
 export type { OnScreen } from './exports';
 
@@ -85,12 +86,20 @@ export function TopBar({ files, onScreen }: { files: FileActions; onScreen: () =
   const canRedo = useApp((s) => s.future.length > 0);
   const dirty = useApp((s) => s.project.dirty);
   const { undo, redo } = useApp.getState();
+  const [about, setAbout] = useState(false);
+  const openAbout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setAbout(true);
+  };
 
   return (
     <header className="topbar">
       <div className="brand">
-        <img className="brand-mark" src="/favicon.png" alt="" />
-        <span className="brand-name" title={`Simflate v${import.meta.env.VITE_APP_VERSION}`}>Simflate</span>
+        <button className="brand-btn" onClick={openAbout} onContextMenu={openAbout} title={`Simflate v${import.meta.env.VITE_APP_VERSION}: about, checks and problem reports`} data-testid="about">
+          <img className="brand-mark" src="/favicon.png" alt="" />
+          <span className="brand-name">Simflate</span>
+        </button>
+        {about && <DiagnosticsDialog onClose={() => setAbout(false)} />}
         <nav className="menubar" aria-label="Menus">
           <FileMenu files={files} onScreen={onScreen} />
           <EditMenu files={files} />

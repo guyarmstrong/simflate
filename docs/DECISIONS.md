@@ -747,3 +747,6 @@ the new one — don't delete history.
   as DXF" instead of adding a build tool. Export stays DXF (AutoCAD saves
   it as DWG). LibreDWG was the alternative: GPL, a separate program to
   ship per platform.
+- **Slow Reference start = OpenCourant `fill_igr.F`** (two `DO I = 1, 10000` loops opening ROOTNAME_NNNN.rad): 20,000 failed opens, ~1.5 ms each under Trend Micro. Reported upstream (OpenCourant#67). A binary edit (loop limits 10001 → 3) was proven harmless (byte-identical models, planted file ignored) but **not shipped**: Norton holds the unknown edited exe ~21 s per launch, and any self-built starter would be "unknown" too. Kept the original; preparing ahead hides most of it. `check-upstream.mjs` stops each build until the fix lands upstream.
+- **File-open check** (`src-tauri/src/probe.rs`): 2,000 failed opens timed a few seconds after start → expected starter-loop cost on this computer, kept in `file-open-check.txt` beside the crash reports. Works where Reference isn't installed (the Mac), so we know whether the loop matters there.
+- **About & diagnostics on the logo** (`ui/src/ui/Diagnostics.tsx`, `src-tauri/src/diag.rs`): one place for version, checks and problem reports; screen errors are now saved as reports too (`simflate-screen-<s>.txt`), not only engine panics.

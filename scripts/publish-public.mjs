@@ -16,7 +16,7 @@ const remote = 'https://github.com/guyarmstrong/simflate.git';
 const who = { name: 'Guy Armstrong', email: '200261854+guyarmstrong@users.noreply.github.com' };
 const work = path.join(os.tmpdir(), 'simflate-public');
 
-const git = (args, cwd = work, opts = {}) => execFileSync('git', args, { cwd, encoding: 'utf8', ...opts }).trim();
+const git = (args, cwd = work, opts = {}) => (execFileSync('git', args, { cwd, encoding: 'utf8', ...opts }) ?? '').trim();
 
 if (git(['status', '--porcelain'], root)) console.warn('Note: uncommitted changes are not published (only committed files are).');
 const sha = git(['rev-parse', '--short', ref], root);
