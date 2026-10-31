@@ -7,8 +7,9 @@ import { useEffect, useState } from 'react';
 import { Copy, FolderOpen } from 'lucide-react';
 import { isDesktop } from '../io/files';
 
-/** The OpenCourant release in vendor/opencourant/manifest.json, and our report of its slow start. */
-const OC_RELEASE = 'latest-20261011';
+/** The OpenCourant shipped: their release on Windows (vendor/opencourant/manifest.json);
+ *  our own build on a Mac (vendor/opencourant-mac/SOURCE.md). And our report of its slow start. */
+const OC_RELEASE = /Mac/.test(navigator.userAgent) ? 'Mac build 84a0325' : 'latest-20261011';
 const OC_ISSUE = 'https://github.com/OpenCourant/OpenCourant/issues/67';
 
 interface Report {
