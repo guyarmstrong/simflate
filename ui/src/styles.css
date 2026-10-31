@@ -2313,6 +2313,9 @@ code {
 .diag-row b.bad {
   color: var(--bad);
 }
+.diag-row b.warn {
+  color: #ffb86b;
+}
 .diag-sub {
   margin-top: -4px;
   font-size: 11px;

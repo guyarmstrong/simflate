@@ -73,7 +73,8 @@ export function DiagnosticsDialog({ onClose }: { onClose: () => void }) {
     );
 
   const latest = fileCheck(d?.file_check[0]);
-  const slow = latest ? Number(latest.s) >= 2 : false;
+  // Bands as in probe.rs (older lines said SLOW from 2 s: judge by the number).
+  const band = !latest ? '' : Number(latest.s) < 5 ? 'fine' : Number(latest.s) < 15 ? 'noticeable' : 'slow';
   const summary = d
     ? [
         `Simflate v${import.meta.env.VITE_APP_VERSION} (${d.version}) · ${OS[d.os] ?? d.os} ${d.arch}`,
@@ -103,10 +104,10 @@ export function DiagnosticsDialog({ onClose }: { onClose: () => void }) {
         {d && (
           <>
             <h4>Checks</h4>
-            <div className="diag-row" title="A few seconds after start-up Simflate times 2,000 opens of files that aren't there, as OpenCourant's starter does 20,000 times (its issue #67). Slow here means an antivirus checks every open.">
+            <div className="diag-row" title="A few seconds after start-up Simflate times 2,000 opens of files that aren't there, as OpenCourant's starter does 20,000 times (its issue #67). Fine under 5 s, noticeable to 15 s, slow above: an antivirus checking every open.">
               <span>File-open check</span>
-              <b className={slow ? 'bad' : 'good'}>
-                {latest ? `${latest.ms} ms → starter loop ≈ ${latest.s} s · ${slow ? 'slow' : 'fine'}` : 'not run yet'}
+              <b className={band === 'slow' ? 'bad' : band === 'noticeable' ? 'warn' : 'good'}>
+                {latest ? `${latest.ms} ms → starter loop ≈ ${latest.s} s · ${band}` : 'not run yet'}
               </b>
             </div>
             {latest && <div className="diag-sub">Last run {when(latest.secs)} · {d.file_check.length} kept</div>}
