@@ -750,3 +750,30 @@ the new one — don't delete history.
 - **Slow Reference start = OpenCourant `fill_igr.F`** (two `DO I = 1, 10000` loops opening ROOTNAME_NNNN.rad): 20,000 failed opens, ~1.5 ms each under Trend Micro. Reported upstream (OpenCourant#67). A binary edit (loop limits 10001 → 3) was proven harmless (byte-identical models, planted file ignored) but **not shipped**: Norton holds the unknown edited exe ~21 s per launch, and any self-built starter would be "unknown" too. Kept the original; preparing ahead hides most of it. `check-upstream.mjs` stops each build until the fix lands upstream.
 - **File-open check** (`src-tauri/src/probe.rs`): failed opens timed a few seconds after start (best of 3 × 1,000; bands fine < 5 s, noticeable < 15 s, slow above — Guy's laptop measured 0.3–2.3 s, the Trend laptop 30–70 s) → expected starter-loop cost on this computer, kept in `file-open-check.txt` beside the crash reports. Works where Reference isn't installed (the Mac), so we know whether the loop matters there.
 - **About & diagnostics on the logo** (`ui/src/ui/Diagnostics.tsx`, `src-tauri/src/diag.rs`): one place for version, checks and problem reports; screen errors are now saved as reports too (`simflate-screen-<s>.txt`), not only engine panics.
+
+## Session 23 (Guy)
+
+- **Seam stiffness defaults to 50** (setting 1: the seam bends like the sheet). A
+  TIG seam is fused, not a free hinge; Guy's best runs used 50. Forms saved
+  without the setting keep 0.
+- **Edge ripples default to 0.** They are a finisher effect, not physics, and
+  they reach the export; the solver's draw-in gives the edge its real waviness.
+  Forms saved without the setting keep 50.
+- **Height view measures from the seam** (piece's own z = 0), both sheets
+  ramping to white at their tops. It used world z after the piece was set on
+  the floor, so the top half saturated white.
+- **Mac Reference = our public fork `guyarmstrong/opencourant-mac`** (branch
+  `macos`), built free on GitHub's macos-15 runners with Homebrew GCC; the
+  programs carry their dylibs (`bundle_deps.sh`, `@executable_path`, ad-hoc
+  signed) so no Homebrew is needed on the user's Mac. Guy's MacBook (macOS
+  14.6, can't be updated, no admin) is the test Mac for GitHub's builds, not a
+  build machine.
+- **Open reader on a newer starter:** unknown Radioss format (starter 2612)
+  falls back to radioss2026 rather than adding a 2612 enum; the starter's own
+  open-reader fallbacks (include / part / rigid-part APIs) are forced on with
+  `-open_reader`. Both are upstream bugs to offer back.
+- **Mac clipboard via NSPasteboard (objc2-app-kit 0.3)**, not a clipboard
+  crate: it's already in the build through Tauri and gives the pasteboard
+  types needed to recognise Illustrator.
+- **Older Macs:** target macOS 11+ for Apple silicon and Intel (universal via
+  `lipo`); check each program's minos in CI.

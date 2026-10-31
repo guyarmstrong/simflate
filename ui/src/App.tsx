@@ -192,7 +192,9 @@ export function App() {
     if (!svg) {
       return st.showToast(
         isDesktop
-          ? 'Nothing to paste. In Illustrator or Word, select a shape and press Ctrl+C, then come back and press Ctrl+V.'
+          ? /Mac/.test(navigator.userAgent)
+            ? 'Nothing to paste. In Illustrator or Word, select a shape and press ⌘C, then come back and press ⌘V.'
+            : 'Nothing to paste. In Illustrator or Word, select a shape and press Ctrl+C, then come back and press Ctrl+V.'
           : 'Nothing to paste. In the browser only Illustrator copies can be pasted (Word needs the desktop app).',
       );
     }

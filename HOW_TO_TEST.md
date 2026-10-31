@@ -238,7 +238,7 @@ What would help most next: **4–6 real DXFs and photos of the finished pieces**
 
 ## Known gaps (coming next)
 
-- Edge ripples are new — tell Claude if they're too strong, too regular or in the wrong places.
+- Edge ripples are off by default (session 23): a finishing effect, not physics. The slider is still there for the look.
 - Final mode's progress bar (Final currently runs live, just slower).
 - SketchUp `.skp` export — waits for the SketchUp SDK (`.dae` works now).
 - **Symmetric** and **Specified geometric** solvers — being built (session 15).
@@ -249,3 +249,30 @@ What would help most next: **4–6 real DXFs and photos of the finished pieces**
 
 - **Click or right-click the Simflate logo** (top left). The popup shows the version, what the computer is (Windows / Mac), the **file-open check** (green "fine" or red "slow": whether an antivirus would slow OpenCourant's start on this computer; it runs a few seconds after Simflate opens), whether Reference is installed, the OpenCourant release with a link to our issue #67, and **problem reports**: click one to read it, **Copy report** to email it, **Copy summary** for the version and checks, **Folder** to see the files.
 - In the browser preview it only shows the version.
+
+## On a Mac (about 15 minutes)
+
+Already checked by Claude, so no need to repeat: the 3D view, finishes, the live
+solver and Forms behave the same in the Mac's display engine as on Windows
+(same pillow, same height to 0.1 mm), and copy / paste works on the Mac
+clipboard. What's left is what only a real Mac can show.
+
+**Mac basics for this list**
+- **⌘** (Command, next to the space bar) does what Ctrl does on Windows: ⌘S save, ⌘C copy, ⌘V paste, ⌘Z undo.
+- **Finder** is the Mac's file explorer (the blue face in the Dock at the bottom). Downloads and Documents are in its left column.
+- **Screenshot** of anything odd: ⇧⌘4 (Shift + Command + 4), then drag a box. It lands on the Desktop. Send those to Claude.
+- To quit an app: ⌘Q.
+
+**Install** — follow `How to install on a Mac.txt` in the share folder (the "Open Anyway" step the first time).
+- Good: the Dock shows the blue pillow with no black square behind it, the same size as the other icons.
+
+**Tick each one; screenshot anything that looks wrong**
+1. **Opens**: Simflate opens to the Draft board; Forms holds the nine examples. Click one: it shows in 3D.
+2. **Draw + inflate**: draw a rectangle, press Inflate, press play. It inflates smoothly (no stutter for more than a second).
+3. **Save**: ⌘S. A Mac save window opens; save in Documents. Quit (⌘Q), reopen Simflate, File → Recent projects: your file is there and opens.
+4. **Save as next revision**: File → Save as next revision. Good: a new file "… Rev B" next to the first in Finder.
+5. **Import**: File → Import a DXF, an SVG and a DWG (any from `samples/` or the client's). Good: the outline appears at the right size.
+6. **Export**: from Forms → Export, save each kind (KeyShot GLB, OBJ, DAE, STEP, STL, PNG) to one folder. Good: each file is there in Finder and isn't 0 KB. If KeyShot or SketchUp is on that Mac, open the GLB / DAE.
+7. **Copy to Illustrator** (only if Illustrator is on that Mac): select shapes, ⌘C, paste in Illustrator (⌘V). Then the other way: copy a shape in Illustrator, ⌘V on the Draft board. If Simflate says "Include SVG Code", switch that on in Illustrator (Settings → Clipboard Handling) and copy again.
+8. **Diagnostics**: click the Simflate logo top left → Copy summary, paste it into an email to Claude/Guy. It says Mac, the file-open check, and whether Reference is installed.
+9. **Reference** (once the Mac engine is in a build): pick Reference, inflate the same rectangle. Good: it runs and lands at about the same height as on Windows.

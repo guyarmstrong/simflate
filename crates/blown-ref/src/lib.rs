@@ -30,7 +30,24 @@ pub fn install_dir_with(first: impl IntoIterator<Item = PathBuf>) -> Option<Path
         .into_iter()
         .chain(std::env::var_os("BLOWNSIM_OPENCOURANT").map(PathBuf::from))
         .chain(std::env::var_os("USERPROFILE").map(|h| PathBuf::from(h).join("OpenCourant").join("OpenCourant")));
-    candidates.into_iter().map(|d| plain_path(&d)).find(|d| usable(d))
+    let found = candidates.into_iter().map(|d| plain_path(&d)).find(|d| usable(d));
+    #[cfg(target_os = "macos")]
+    if let Some(d) = &found {
+        unquarantine(d);
+    }
+    found
+}
+
+/// A downloaded app's files carry the Mac's quarantine mark, and the Mac may
+/// refuse to start an engine program that has it even once Simflate itself
+/// is allowed. Cleared from our own engine folder once per app session; if
+/// it can't be (app folder not writable), runs report the engine's error.
+#[cfg(target_os = "macos")]
+fn unquarantine(oc: &Path) {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        let _ = Command::new("xattr").args(["-dr", "com.apple.quarantine"]).arg(oc.join("exec")).stdout(Stdio::null()).stderr(Stdio::null()).status();
+    });
 }
 
 /// `\\?\D:\…` → `D:\…` (and `\\?\UNC\server\…` → `\\server\…`). The app
@@ -57,6 +74,51 @@ mod tests {
         assert_eq!(plain_path(Path::new(r"\\?\UNC\server\share\oc")), PathBuf::from(r"\\server\share\oc"));
         assert_eq!(plain_path(Path::new(r"C:\OpenCourant")), PathBuf::from(r"C:\OpenCourant"));
     }
+
+    #[test]
+    fn mac_programs_by_chip() {
+        let thin = |cpu: u32| [0xFEED_FACFu32.to_le_bytes(), cpu.to_le_bytes()].concat();
+        assert!(macho_has(&thin(ARM64), ARM64));
+        assert!(!macho_has(&thin(ARM64), X86_64));
+        let mut fat = [0xCAFE_BABEu32.to_be_bytes(), 2u32.to_be_bytes()].concat();
+        for cpu in [X86_64, ARM64] {
+            fat.extend(cpu.to_be_bytes());
+            fat.extend([0u8; 16]);
+        }
+        assert!(macho_has(&fat, ARM64) && macho_has(&fat, X86_64));
+        assert!(!macho_has(b"MZ\x90\0not a mac program", ARM64));
+    }
+}
+
+/// Mach-O CPU types (cputype field).
+const ARM64: u32 = 0x0100_000C;
+const X86_64: u32 = 0x0100_0007;
+
+/// Does this Mach-O file (thin or universal) hold code for `cpu`?
+fn macho_has(b: &[u8], cpu: u32) -> bool {
+    let le = |i: usize| b.get(i..i + 4).map(|s| u32::from_le_bytes([s[0], s[1], s[2], s[3]]));
+    let be = |i: usize| b.get(i..i + 4).map(|s| u32::from_be_bytes([s[0], s[1], s[2], s[3]]));
+    if le(0) == Some(0xFEED_FACF) {
+        return le(4) == Some(cpu);
+    }
+    if be(0) == Some(0xCAFE_BABE) {
+        let n = be(4).unwrap_or(0).min(16) as usize;
+        return (0..n).any(|k| be(8 + k * 20) == Some(cpu));
+    }
+    false
+}
+
+/// On a Mac: can this program run on this Mac's chip? Our Mac engine is
+/// Apple silicon only until the Intel build joins it (then one universal
+/// set), so an Intel Mac must not offer Reference with it.
+fn for_this_chip(file: &Path) -> bool {
+    if !cfg!(target_os = "macos") {
+        return true;
+    }
+    use std::io::Read;
+    let mut head = Vec::new();
+    let read = fs::File::open(file).and_then(|f| f.take(4096).read_to_end(&mut head));
+    read.is_ok() && macho_has(&head, if cfg!(target_arch = "aarch64") { ARM64 } else { X86_64 })
 }
 
 /// What one run inflates and how far.
@@ -178,36 +240,60 @@ fn exe(oc: &Path, name: &str) -> bool {
     oc.join("exec").join(name).is_file()
 }
 
+/// OpenCourant's platform tag in program and library folder names: `win64`
+/// (their release); `macos` for our own Mac build (session 22; OpenCourant
+/// publishes no Mac version), one universal set for Apple silicon and Intel,
+/// renamed from `macosa64_gf` when packed (scripts/opencourant.mjs);
+/// `linux64` / `linuxa64`.
+const ARCH: &str = if cfg!(windows) {
+    "win64"
+} else if cfg!(target_os = "macos") {
+    "macos"
+} else if cfg!(target_arch = "aarch64") {
+    "linuxa64"
+} else {
+    "linux64"
+};
+const EXE: &str = if cfg!(windows) { ".exe" } else { "" };
+
+/// `starter` + `_sp` → `starter_win64_sp.exe` here, `starter_macos_sp` on a Mac.
+fn prog(stem: &str, suffix: &str) -> String {
+    format!("{stem}_{ARCH}{suffix}{EXE}")
+}
+
 /// Single precision: OpenCourant's `_sp` starter and engines, used when
 /// they're there (`BLOWN_REF_SP=0` turns it off). Guy's leaf to 80 mm: same
 /// piece to 0.01 mm, 2.3 -> 1.9 min.
 fn single(oc: &Path) -> bool {
     std::env::var("BLOWN_REF_SP").map(|v| v != "0").unwrap_or(true)
-        && exe(oc, "starter_win64_sp.exe")
-        && (exe(oc, "engine_win64_sp.exe") || exe(oc, "engine_win64_impi_sp.exe") || exe(oc, BRANDED_ENGINE))
+        && exe(oc, &prog("starter", "_sp"))
+        && (exe(oc, &prog("engine", "_sp")) || exe(oc, &prog("engine", "_impi_sp")) || exe(oc, BRANDED_ENGINE))
 }
 
 /// The installer ships `engine_win64_impi_sp.exe` under this name (same
 /// file), so the four copies in Task Manager say whose they are (Guy:
 /// unnamed engines at a few % each look like nothing is happening).
-pub const BRANDED_ENGINE: &str = "Simflate Reference engine.exe";
+pub const BRANDED_ENGINE: &str = if cfg!(windows) { "Simflate Reference engine.exe" } else { "Simflate Reference engine" };
 
 /// `engine_win64` + `_impi` (several copies) + `_sp` (single precision).
+/// The Mac build has no MPI: one engine copy on several threads.
 fn engine_exe(oc: &Path, mpi: bool) -> String {
-    if mpi && single(oc) && exe(oc, BRANDED_ENGINE) {
+    if (mpi || !cfg!(windows)) && single(oc) && exe(oc, BRANDED_ENGINE) {
         return BRANDED_ENGINE.into();
     }
-    format!("engine_win64{}{}.exe", if mpi { "_impi" } else { "" }, if single(oc) { "_sp" } else { "" })
+    prog("engine", &format!("{}{}", if mpi { "_impi" } else { "" }, if single(oc) { "_sp" } else { "" }))
 }
 
 fn has_mpi(oc: &Path) -> bool {
-    exe(oc, &engine_exe(oc, true)) && mpiexec(oc).is_file()
+    cfg!(windows) && exe(oc, &engine_exe(oc, true)) && mpiexec(oc).is_file()
 }
 
 /// Something to run: a starter and an engine (the installer ships only the
 /// single-precision MPI pair; a full OpenCourant install has them all).
 fn usable(oc: &Path) -> bool {
-    (exe(oc, "starter_win64.exe") || exe(oc, "starter_win64_sp.exe")) && (exe(oc, &engine_exe(oc, false)) || has_mpi(oc))
+    (exe(oc, &prog("starter", "")) || exe(oc, &prog("starter", "_sp")))
+        && (exe(oc, &engine_exe(oc, false)) || has_mpi(oc))
+        && for_this_chip(&oc.join("exec").join(engine_exe(oc, false)))
 }
 
 fn mpiexec(oc: &Path) -> PathBuf {
@@ -269,23 +355,33 @@ pub fn stop_all() {
             let _ = Command::new("taskkill").args(["/IM", name, "/F"]).creation_flags(0x0800_0000).stdout(Stdio::null()).stderr(Stdio::null()).status();
         }
     }
+    // A Mac keeps only 16 characters of a process name, so the branded engine
+    // is found by its whole command line (-f) instead of its name (-x).
+    #[cfg(not(windows))]
+    for (how, name) in [("-x", prog("engine", "")), ("-x", prog("engine", "_sp")), ("-f", format!("exec/{BRANDED_ENGINE}"))] {
+        let _ = Command::new("pkill").args([how, &name]).stdout(Stdio::null()).stderr(Stdio::null()).status();
+    }
 }
 
 fn command(oc: &Path, exe: &str, dir: &Path) -> Command {
     let mut c = Command::new(oc.join("exec").join(exe));
     let ext = oc.join("extlib");
-    let h3d = ext.join("h3d").join("lib").join("win64");
+    let h3d = ext.join("h3d").join("lib").join(ARCH);
+    // Where the programs find their libraries: PATH on Windows; on the Mac the
+    // reader, compiler runtime and OpenMP live in extlib/runtime/<arch>.
+    let var = if cfg!(windows) { "PATH" } else if cfg!(target_os = "macos") { "DYLD_LIBRARY_PATH" } else { "LD_LIBRARY_PATH" };
     let path = std::env::join_paths(
-        [ext.join("hm_reader").join("win64"), ext.join("intelOneAPI_runtime").join("win64"), h3d.clone()]
+        [ext.join("hm_reader").join(ARCH), ext.join("intelOneAPI_runtime").join(ARCH), ext.join("runtime").join(ARCH), h3d.clone()]
             .into_iter()
-            .chain(std::env::var_os("PATH").map(|p| std::env::split_paths(&p).collect::<Vec<_>>()).unwrap_or_default()),
+            .filter(|d| cfg!(windows) || d.is_dir())
+            .chain(std::env::var_os(var).map(|p| std::env::split_paths(&p).collect::<Vec<_>>()).unwrap_or_default()),
     )
     .unwrap_or_default();
     c.current_dir(dir)
         .env("RAD_CFG_PATH", oc.join("hm_cfg_files"))
         .env("RAD_H3D_PATH", &h3d)
         .env("KMP_STACKSIZE", "400m")
-        .env("PATH", path)
+        .env(var, path)
         .stdin(Stdio::null());
     #[cfg(windows)]
     {
@@ -383,18 +479,14 @@ fn fnv1a(parts: &[&[u8]]) -> u64 {
     h
 }
 
-fn starter_exe(oc: &Path) -> &'static str {
-    if single(oc) {
-        "starter_win64_sp.exe"
-    } else {
-        "starter_win64.exe"
-    }
+fn starter_exe(oc: &Path) -> String {
+    prog("starter", if single(oc) { "_sp" } else { "" })
 }
 
 /// OpenCourant's starter: model.k → the engine's input (model_0001.rad) and
 /// one restart file per copy (model_0000_000N.rst).
 fn run_starter(oc: &Path, dir: &Path, ranks: usize) -> Result<(), String> {
-    let status = command(oc, starter_exe(oc), dir)
+    let status = command(oc, &starter_exe(oc), dir)
         .args(["-i", "model.k", "-np", &ranks.to_string()])
         .stdout(log_file(dir, "starter.log")?)
         .stderr(log_file(dir, "starter.err")?)
@@ -599,7 +691,7 @@ pub fn run(job: &Job, ctl: &Control, on: &mut dyn FnMut(Event)) -> Result<Outcom
 #[allow(clippy::too_many_arguments)]
 fn read_frame(job: &Job, fold: Option<&Fold>, tuning: &Tuning, area: f64, file: usize, index: usize, history: &[rf::WaterSample], last: bool) -> Result<(Vec<f32>, FrameInfo), String> {
     let name = format!("modelA{file:03}");
-    let out = command(&job.oc, "anim_to_vtk_win64.exe", &job.dir).arg(&name).stdout(Stdio::piped()).stderr(Stdio::null()).output().map_err(|e| e.to_string())?;
+    let out = command(&job.oc, &prog("anim_to_vtk", ""), &job.dir).arg(&name).stdout(Stdio::piped()).stderr(Stdio::null()).output().map_err(|e| e.to_string())?;
     let mut fr = rf::read_vtk(&String::from_utf8_lossy(&out.stdout), fold.map_or(job.positions.len(), |f| f.positions.len()) / 3)?;
     if let Some(f) = fold {
         fr.positions = f.unfold(&fr.positions);

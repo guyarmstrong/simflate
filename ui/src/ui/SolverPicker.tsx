@@ -6,6 +6,26 @@ import { ExternalLink, Info, RotateCcw } from 'lucide-react';
 import { SOLVERS, usesReference, type SolverId } from '../model/presets';
 import { isDesktop } from '../io/files';
 
+/** Reference and Symmetric run OpenCourant: in every Windows installer; on a
+ *  Mac only with our Mac build packed in and on its chip, so the app is asked. */
+const isMac = typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent);
+let macCheck: Promise<boolean> | undefined;
+function referenceOnMac(): Promise<boolean> {
+  macCheck ??= import('@tauri-apps/api/core')
+    .then(({ invoke }) => invoke('reference_check'))
+    .then(() => true, () => false);
+  return macCheck;
+}
+
+/** Can Reference run here? null while a Mac is still being asked. */
+function useReferenceHere(): boolean | null {
+  const [here, setHere] = useState<boolean | null>(isDesktop && isMac ? null : isDesktop);
+  useEffect(() => {
+    if (isDesktop && isMac) void referenceOnMac().then(setHere);
+  }, []);
+  return here;
+}
+
 interface About {
   title: string;
   lines: string[];
@@ -75,8 +95,16 @@ export function SolverPicker({ value, onChange, onReset }: { value: SolverId; on
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const about = ABOUT[value];
+  const referenceHere = useReferenceHere();
+  const macWithout = isMac && referenceHere === false;
+
+  // A form or project saved on Windows may bring Reference to a Mac without it: fall back to Fast.
+  useEffect(() => {
+    if (macWithout && usesReference(value)) onChange('fast');
+  }, [macWithout, value, onChange]);
 
   // Close on a click elsewhere or Escape.
+
   useEffect(() => {
     if (!open) return;
     const down = (e: PointerEvent) => {
@@ -109,8 +137,9 @@ export function SolverPicker({ value, onChange, onReset }: { value: SolverId; on
       </header>
       <select className="solver-select" value={value} onChange={(e) => onChange(e.target.value as SolverId)} data-testid="solver">
         {SOLVERS.map((o) => (
-          <option key={o.id} value={o.id} disabled={!o.ready || (usesReference(o.id) && !isDesktop)}>
+          <option key={o.id} value={o.id} disabled={!o.ready || (usesReference(o.id) && !referenceHere)}>
             {o.name}
+            {usesReference(o.id) && macWithout ? ' (not on this Mac yet)' : ''}
           </option>
         ))}
       </select>

@@ -140,6 +140,9 @@ export function upgradeSettings(raw: Partial<InflateSettings> | null | undefined
   delete s.steelSolver;
   // Older forms: no bend limit, so their tucks build as before.
   if (raw && raw.minBendMm === undefined) s.minBendMm = 0;
+  // Older forms: free seam hinge and ripples at 50 (the defaults before session 23).
+  if (raw && raw.seamStiffness === undefined) s.seamStiffness = 0;
+  if (raw && raw.edgeRipples === undefined) s.edgeRipples = 0.5;
   // Older forms: tucks as shares, converted to mm by the panel (it knows the outline).
   if (raw && raw.tuckWidthMm === undefined) {
     delete s.tuckWidthMm;
@@ -169,10 +172,13 @@ export const DEFAULT_SETTINGS: InflateSettings = {
   bottomStiffness: 1,
   fixOutline: false,
   clampWhileInflating: false,
-  edgeRipples: 0.5,
+  // Off: ripples are a finishing effect, not physics; the solver's own
+  // draw-in already gives the edge its real waviness (Guy, session 23).
+  edgeRipples: 0,
   ridgeSharpness: 0,
   solver: 'fast',
-  seamStiffness: 0,
+  // 1 = the seam bends like the sheet (slider 50): a TIG seam is fused, not a free hinge.
+  seamStiffness: 1,
   wavesPerEdge: 0,
   waveDepth: 0.5,
   tuckWidth: 0.9,

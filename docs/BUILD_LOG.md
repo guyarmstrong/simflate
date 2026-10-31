@@ -5,6 +5,150 @@ changed underneath, and how it was checked.
 
 ---
 
+## Session 23 — 2026-10-31 · Mac Reference port compiles; Mac icon, Mac clipboard, Height view, new defaults
+
+**Guy asked for:** carry on with the Mac Reference port (he approved the
+public fork); a Mac icon without the black tile, smaller like other Dock
+icons; Illustrator copy / paste to work on the Mac (no Illustrator there to
+test); whether other features need Mac end-to-end checks; Height view fixed
+(only half the piece was coloured); Seam stiffness default 50 and Edge
+ripples default 0 (not realistic); the nine example forms must keep working;
+Intel Macs too (client has older machines); faster builds; a fresh chat.
+
+**Mac Reference port (fork `guyarmstrong/opencourant-mac`, branch `macos`)**
+- Public fork created, `macos` pushed, Actions on; workflow moved to
+  `macos-15` (macos-14 images retire 2 Nov 2026; brownouts cancelled runs).
+- Starter, engine, open reader and anim_to_vtk now **compile and link** on
+  Apple silicon. Fixes (all `__APPLE__`-guarded or harmless elsewhere):
+  off_t / fseeko / ftello for 64-bit offsets; `map<string,…>` (libc++ refuses
+  const keys); superscript ² ³ as `'\xB2'` / `'\xB3'`; cpuinfo via sysctl;
+  builtin-arch detection without `__unix`; `/proc` readers tolerate absence;
+  no `malloc.h`; `RTLD_DEEPBIND` 0; `htobe64` via libkern; `my_real` outside
+  the Python block plus all missing no-Python stubs; starter's own
+  open-reader fallbacks (`HM_READER_LEGACY_INCLUDE_API`, `…_PART_API`,
+  `HM_READER_NO_RBODIES_FROM_RIGID_PARTS`) forced on with `-open_reader`;
+  C++ runtime chosen by `OC_CXX_LIB`; `endian_compat.h` for anim_to_vtk;
+  `build_all.sh` builds starter and engine even if one fails.
+- `Compiling_tools/macos/bundle_deps.sh`: copies every non-system dylib next
+  to the programs, rewrites to `@executable_path`, ad-hoc signs. Runs without
+  Homebrew (checked on Guy's MacBook, macOS 14.6, although everything says
+  minos 15.0).
+- Test run under lldb found the reader stopping with "CFG Kernel Not Loaded":
+  the starter is version **2612**, the open reader only knows formats up to
+  radioss2026, so no Radioss kernel loads (upstream bug: Linux open-reader
+  builds fail the same way). Fix: fall back to radioss2026 when the format is
+  unknown (`radiossblk.cxx`). **Build 10 (run 41213949485) with this fix was
+  still running at the end of the session.**
+- MacBook: Command Line Tools installed; Rust installed (user-local); conda
+  g++ added. Its own builds compile but the starter can't start (conda g++
+  uses libc++, GCC 16 emits `__cxa_call_terminate`): use GitHub's bundled
+  programs on it instead. Homebrew .pkg downloaded to its desktop but **not
+  needed** (needs macOS 15 and an admin; Guy can't update that Mac).
+
+**Simflate**
+- **Mac icon**: blue pillow cut out of its black tile, 80 % of the canvas,
+  soft shadow (`scripts/make-mac-icon.py`, run on a Mac; `assets/icon-mac.*`);
+  replaces `src-tauri/icons/icon.icns` only. Windows icon unchanged. Guy
+  approved; final check is on the Mac.
+- **Mac clipboard** (`clip.rs`, NSPasteboard via objc2-app-kit 0.3, already in
+  the lockfile through Tauri): copy writes text + `public.svg-image`; paste
+  reads SVG, marks it "illustrator" when Illustrator's types are present (so
+  it's sized in points), and says "turn on Include SVG Code" when Illustrator
+  copied without SVG. Paste message says ⌘C / ⌘V on the Mac.
+- **Height view** ramps from the seam (the piece's own z = 0) to white at the
+  top of each sheet. It used world z after the piece was set on the floor, so
+  the top half saturated white.
+- **Seam stiffness default 50**, **Edge ripples default 0**; forms saved
+  without these keys keep 0 / 50 (`upgradeSettings`).
+- `HOW_TO_TEST.md`: "On a Mac" checklist for a non-Mac user.
+
+**Checked**
+- Rust tests + type check (39 + 1 + dwg), `cargo check` and a pasteboard
+  round-trip test (`clip::mac_tests`, ignored by default) **on the MacBook**.
+- Playwright WebKit (Safari's engine) vs Chrome on the isolated preview: load,
+  draw, Fast inflate, finishes, Save form, reload — identical (134.2 mm,
+  11.5 %, 6 416 polys), no errors.
+- All nine example forms open and "Restore shape + settings" brings back their
+  own settings, in both engines (WebKit reports as a Mac, so Reference /
+  Symmetric examples restore as Fast, as designed until the Mac engine ships).
+- Height view and Seam 50 by eye (side + ¾ views); fresh pillow settles at
+  135.4 mm (134.2 at 0).
+
+---
+
+## Session 22 — 2026-10-27…31 · DWG import, public Mac builds, slow starter found, diagnostics, Mac Reference port started
+
+**Guy asked for:** DWG import; the Windows 1.1.1 installer for the work
+laptop; free Mac builds without leaking his email or credentials (a new
+public repo); the slow Reference start on the work laptop explained and
+reported to OpenCourant; a check before every build for an OpenCourant fix;
+a detector telling whether the starter's slow loop affects a computer (Mac
+included); one place in the app for version, detectors and bug reports (the
+logo); Tailscale for the work laptop and a Mac; **Reference must ship and
+work on every Mac install**, like Windows.
+
+**Built**
+- **DWG import** (desktop): `crates/blown-dwg` (acadrust 0.6.7, MPL-2.0,
+  pure Rust) turns DWG into DXF text for the existing DXF import (layers,
+  colours, units, Line types). Import dialog converts in `open_file`; a
+  dropped DWG goes to `dwg_to_dxf` as raw bytes. Browser preview says "save
+  it as DXF" (acadrust's wasm needs wasm-bindgen glue). Tested on Guy's
+  Pentagonal Nova DWGs (Cone Hub 133 × 89 mm, five holes).
+- **Public copy for free Mac builds**: `guyarmstrong/simflate`, current files
+  only, author = GitHub no-reply address (`scripts/publish-public.mjs`).
+  History scanned with gitleaks + an email scan first: no secrets; Guy's
+  gmail only in the private repo's commit authors.
+- **Slow Reference start found**: OpenCourant `starter/source/model/sets/
+  fill_igr.F` loops `DO I = 1, 10000` twice opening `ROOTNAME_NNNN.rad` →
+  20,000 failed opens, ~1.5 ms each under Trend Micro (stack sampling on the
+  work laptop). Reported: **OpenCourant/OpenCourant#67**. A binary edit (loop
+  limits 10001 → 3, offsets in HANDOFF) was proven harmless (byte-identical
+  models, planted file ignored) but **not shipped**: Norton holds an unknown
+  edited exe ~21 s per launch. `scripts/check-upstream.mjs` now runs first in
+  every `tauri build` and stops it if #67 is closed or a newer release is out.
+- **File-open check** (`src-tauri/src/probe.rs`): a few seconds after start,
+  best of 3 × 1,000 failed opens → the starter loop's cost here (fine < 5 s,
+  noticeable < 15 s, slow above), kept in `file-open-check.txt`.
+- **About & diagnostics** on the Simflate logo (click / right-click):
+  version, platform, file-open check, Reference installed, OpenCourant
+  release + #67, problem reports (engine panics and now screen errors) to
+  read / copy, folder button, Copy summary.
+- **Mac**: Reference and Symmetric shown greyed "(Windows only for now)";
+  forms bringing Reference fall back to Fast; clearer message.
+  `crates/blown-ref` is platform-aware (program names `prog("starter","_sp")`
+  → `starter_macosa64_sp`, one engine on threads where no Intel MPI,
+  DYLD_LIBRARY_PATH, pkill); compiles for aarch64-apple-darwin.
+- Installers 1.1.1 (Windows + universal Mac) built on the public repo, in
+  the share folder.
+
+**Mac Reference port (in progress)**: OpenCourant has no macOS build; its
+closed hm_reader has no Mac copy, but the repo's open reader (`reader/`)
+does the same job. Local fork working copy `D:\Gaia\Projects\Stephen
+Newby\opencourant-mac` (branch `macos` on cb760c2, one commit 7916201):
+`Compiling_tools/macos/` (make_recipes.py writes the `macosa64` recipes from
+`linuxa64` ones; md5.c written from RFC 1321 + test, passes all 7 RFC
+vectors; build_all.sh; test model), `.github/workflows/macos_build.yml`.
+Creating the public fork `guyarmstrong/opencourant-mac` was blocked by the
+permission classifier — needs Guy's explicit OK at that step. Guy's MacBook
+Air (M2, 8 GB, macOS 14.6, Tailscale `delaneys-macbook-air-2`, user `moe`,
+SSH key `~/.ssh/simflate_mac`) has conda toolchain in `~/simflate-build/env`
+(gfortran 16, clang, cmake, boost 1.92, metis, netlib lapack, openmpi) and
+the OpenCourant source + extlib in `~/simflate-build/src/OpenCourant`;
+Apple Command Line Tools were still downloading.
+
+**Mistake**: stopped the vite on port 1430 that belonged to Guy's still-open
+window (a second launch had failed); restarted it and Guy reloaded. Memory
+note updated: check `blownsim.exe` first.
+
+**Checked:** `npm test` (39 + 1 blown-dwg) and type check after each step;
+src-tauri compiles; blown-ref compiles for aarch64-apple-darwin; DWG import
+in an isolated browser test; About popup screenshots (browser + faked
+desktop); starter timing kits and stack sampling on the work laptop;
+original vs edited starter compared byte for byte; public builds green
+(Windows + Mac).
+
+---
+
 ## Session 21 — 2026-10-26 · Packaging 1.1, example forms, short screens, Reference start-up
 
 **Guy asked for:** final Windows + Mac packages in a folder to share (Windows

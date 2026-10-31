@@ -11,9 +11,11 @@ const overlayVertex = /* glsl */ `
   varying vec3 vNormal;
   varying float vCrease;
   varying float vContact;
+  varying float vZ;
   void main() {
     vec4 wp = modelMatrix * vec4(position, 1.0);
     vWorldPos = wp.xyz;
+    vZ = position.z;
     vNormal = normalize(mat3(modelMatrix) * normal);
     vCrease = crease;
     vContact = contact;
@@ -31,6 +33,7 @@ const overlayFragment = /* glsl */ `
   varying vec3 vNormal;
   varying float vCrease;
   varying float vContact;
+  varying float vZ;
 
   // Perceptual-ish ramp: deep blue → teal → warm white.
   vec3 ramp(float t) {
@@ -61,7 +64,9 @@ const overlayFragment = /* glsl */ `
       gl_FragColor = vec4(col, 1.0);
       return;
     } else if (mode == 1) {
-      col = ramp((vWorldPos.z - zRange.x) / max(zRange.y - zRange.x, 1e-6));
+      // Height from the seam (the piece's own z = 0, before it is set on the
+      // floor): dark at the weld, warm white at the top of each sheet.
+      col = ramp(abs(vZ) / max(max(-zRange.x, zRange.y), 1e-6));
     } else if (mode == 2) {
       // creaseMax adapts to the piece on screen, so even a gently creased
       // piece shows its main crease; the strongest folds run hot to white.
@@ -635,7 +640,7 @@ export const LOOKS: LookInfo[] = [
   { value: 'brushed', label: 'Brushed', group: 'finish', title: 'Brushed (satin) stainless', swatch: 'repeating-linear-gradient(100deg, #c9cdd3 0 2px, #aab0b8 2px 4px), #bbb' },
   { value: 'bead', label: 'Bead-blast', group: 'finish', title: 'Bead-blasted (matte) stainless', swatch: 'radial-gradient(circle at 35% 30%, #d7dadf, #9097a0 70%, #5d636b)' },
   { value: 'zebra', label: 'Zebra', group: 'analysis', title: 'Reflected stripes — kinks in stripes are kinks in the form', swatch: 'repeating-linear-gradient(45deg, #f2f2f2 0 4px, #111 4px 8px)' },
-  { value: 'height', label: 'Height', group: 'analysis', title: 'Colour by height', swatch: 'linear-gradient(180deg, #fbe7b0, #1f9eb2 55%, #1a2a6b)' },
+  { value: 'height', label: 'Height', group: 'analysis', title: 'Colour by height from the seam: dark at the weld, white at the top of each side', swatch: 'linear-gradient(180deg, #fbe7b0, #1f9eb2 55%, #1a2a6b)' },
   { value: 'crease', label: 'Creases', group: 'analysis', title: 'Where the metal has permanently folded', swatch: 'radial-gradient(circle, #ff7340 0 30%, #3a3d42 70%)' },
   { value: 'contact', label: 'Contact', group: 'analysis', title: 'Where the sheet touches the plates', swatch: 'radial-gradient(circle, #f9b85c 0 40%, #3a3d42 75%)' },
   { value: 'mesh', label: 'Mesh', group: 'analysis', title: 'Show the triangle mesh', swatch: 'repeating-linear-gradient(60deg, transparent 0 5px, #8ee6d2 5px 6px), repeating-linear-gradient(-60deg, transparent 0 5px, #8ee6d2 5px 6px), #2a2e33' },

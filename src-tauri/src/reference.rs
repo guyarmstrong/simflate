@@ -79,7 +79,13 @@ struct DoneEvent {
 }
 
 fn not_installed() -> String {
-    "The Reference solver is missing from this installation (Windows only). Reinstall Simflate to put it back.".into()
+    if cfg!(all(target_os = "macos", target_arch = "x86_64")) {
+        "Reference and Symmetric aren't on Intel Macs yet (Apple silicon and Windows). Use Fast or Steel.".into()
+    } else if cfg!(target_os = "macos") {
+        "Reference and Symmetric aren't in this Mac build. Use Fast or Steel.".into()
+    } else {
+        "The Reference solver is missing from this installation. Reinstall Simflate to put it back.".into()
+    }
 }
 
 /// OpenCourant: the copy installed with the app first (Windows installer,

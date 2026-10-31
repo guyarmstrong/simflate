@@ -70,7 +70,7 @@ if (fs.existsSync(runs)) {
   extra.length ? warn('runs/: experiment leftovers', extra.join(', ')) : ok('runs/: only the test suite');
 }
 // Deliberately large: studio HDRIs and the bundled Reference solver pieces.
-const meantBig = (f) => f.startsWith('ui/public/studio/') || f.startsWith('vendor/opencourant/');
+const meantBig = (f) => f.startsWith('ui/public/studio/') || f.startsWith('vendor/opencourant/') || f.startsWith('vendor/opencourant-mac/');
 const big = run('git ls-files').split('\n').filter((f) => f && !meantBig(f) && fs.existsSync(path.join(root, f)) && fs.statSync(path.join(root, f)).size > 2_000_000);
 big.length ? warn('Large files in git', big.join(', ')) : ok('No large files in git');
 
