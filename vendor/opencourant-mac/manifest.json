@@ -1,36 +1,36 @@
 {
   "what": "OpenCourant (community continuation of OpenRadioss), the parts BlownSim runs",
-  "source": "C:/Users/guyke/AppData/Local/Temp/claude/d--Gaia-Projects-Stephen-Newby-Sheet-Metal-Inflation-Simulator/ee803207-1158-400d-98ef-ba3ab37649dc/scratchpad/mac12/pkg",
-  "release": "github.com/guyarmstrong/opencourant-mac commit 84a0325579d4158a2e84e1ad63e311dac82abe3a, run 41218041420, 2026-10-31\nmacOS 15.8.2, arm64\nboost 1.92.0_1\ngcc 16.2.0\nlapack 3.12.1_1\nmetis 5.1.0",
+  "source": "C:/Users/guyke/AppData/Local/Temp/claude/C--Users-guyke/7160018f-124b-40fb-8ece-9b8190d844a3/scratchpad/intel/uni",
+  "release": "github.com/guyarmstrong/opencourant-mac commit 4e4233aa4e6169df7d387c156494952517e9ca25, run 41345080291, 2026-11-01 (universal: arm64 + x86_64)\nmacOS 15.8.2, arm64, deployment target 11.0\nboost 1.92.0_1\ngcc 16.2.0\nlapack 3.12.1_1\nmetis 5.1.0\n-- Intel:\nmacOS 15.7.9, x86_64, deployment target 11.0\nboost 1.92.0\ngcc 16.2.0\nlapack 3.12.1\nmetis 5.1.0",
   "licence": "AGPL-3.0-or-later (COPYRIGHT.md, licenses/)",
-  "packed": "2026-10-31T16:31:22.235Z",
+  "packed": "2026-11-01T21:03:20.878Z",
   "archive": {
-    "bytes": 37419256,
-    "sha256": "bc15e1b8bd1066e34af9edfc9f69959a70051a776ce06bd6d2ed9a387ca44539"
+    "bytes": 74217088,
+    "sha256": "95799cc08bea9d8f0fc9dad3b5ef89153cb06ee8a5b9c6cadf42ab29667cbb9d"
   },
   "pieces": [
     {
       "name": "opencourant.tar.gz.000",
-      "bytes": 37419256,
-      "sha256": "bc15e1b8bd1066e34af9edfc9f69959a70051a776ce06bd6d2ed9a387ca44539"
+      "bytes": 74217088,
+      "sha256": "95799cc08bea9d8f0fc9dad3b5ef89153cb06ee8a5b9c6cadf42ab29667cbb9d"
     }
   ],
   "files": {
     "COPYRIGHT.md": "f58efdc24ccfa676e7cced2c239e963b42270202afa737033ea25c7ae9f44f1f",
-    "exec/Simflate Reference engine": "bd047bfab7bbb10a20f7ae2088552a2eabbdb8b84fbe85de358ce44603a85548",
-    "exec/anim_to_vtk_macos": "be50ce1aa48ea6c5cb71b43aad11af8925bf29d2d134da9f43d8799084c9cb79",
-    "exec/libblas.3.dylib": "de1a9975fe8075cf78ae8d59eb656e31271f32fb235e48696b68fe722f4c65c8",
-    "exec/libboost_atomic.dylib": "058b7961854c921b7576ef4f3c506606cc2e543197e1576086cc0b497c717d43",
-    "exec/libboost_filesystem.dylib": "459d27ee464266607ca95f2acdf1441eb77cdb8187f664f87f9981e9f48e414d",
-    "exec/libgcc_s.1.1.dylib": "b74df8de035ffb03d850e1791bf2fdee899612d7cd4aae88dcfa6f449bd0621b",
-    "exec/libgfortran.5.dylib": "231c2075ed266814f46ac0abceddffb48dca22e9d33630c402485acdab238467",
-    "exec/libgomp.1.dylib": "0263f9c1d1b7f17503648955cc298151107e9aecd5fcd3be0fe3f663d6346701",
-    "exec/liblapack.3.dylib": "fe253dc02c6fedce45cedbd3acf5a880b9921999490fec0f158d35ee37b55891",
-    "exec/libmetis.dylib": "d02857cf6fa92fa133a4c04ffffedd80d2a8e141cf3fccfb83fad90d7c83b469",
-    "exec/libopen_reader_macosa64.dylib": "918c37e3196945d8ba019bc257495157506e35842b5872e92f7239c2f2c1da9c",
-    "exec/libquadmath.0.dylib": "b81ebbbc842210e170f9b5b5de93c2338ac9eb4585423af4e09f51e4a7b2d085",
-    "exec/libstdc++.6.dylib": "246e99a7b05cf0340e31740a3616309ddeabcfbc8080b80445128a9c134fab31",
-    "exec/starter_macos_sp": "853d4cf86a800fa67729edd1e5b22d47ae3028d07f2e71046a21ef78cf1c4c08",
+    "exec/Simflate Reference engine": "a4d95b75de85f267a6ea598fb45b490f3be847bfc934266c8bdf14f92c483f18",
+    "exec/anim_to_vtk_macos": "fa28fd2bf9dab5f5727d2522eaef957423621a6946366c61953453740621b67e",
+    "exec/libblas.3.dylib": "d27365764b02da70d1e552dcbc55c3c0fd492a59eac8c5b9274deee07ee9bbb3",
+    "exec/libboost_atomic.dylib": "0ce032b04283716736539c0c5b1795b71e1ec43a26c368244dece7592c121724",
+    "exec/libboost_filesystem.dylib": "eeed3caaf9831173aa6d5f6dfdd0495c788f89310b02ba441e7ef39c40e1aef5",
+    "exec/libgcc_s.1.1.dylib": "ac277dce2e2ab47c2c142c0e66492f5afc90f38f4caf517c2032517634fe3fe7",
+    "exec/libgfortran.5.dylib": "025eac7135a83775d5552c4c4053708c227ede77d3d2034b334ee2eabe7a4874",
+    "exec/libgomp.1.dylib": "0d6a824084e259dd82ea7b0392b4b6c370fb51274465fb071c3f1bec25586beb",
+    "exec/liblapack.3.dylib": "eeb86fc3cec1f202b65ac96800899bfbe9dd8c4151ac4393b6a2a0f5ad4c4723",
+    "exec/libmetis.dylib": "1a497db0bc5a9b62bbe7298c57b6cc3c4c05589457cd24c8f15c2069b2c54aa4",
+    "exec/libopen_reader_macosa64.dylib": "70b903229cceefa1e98f564ebc3a421be9624b64558810bf04412c05ee934ad2",
+    "exec/libquadmath.0.dylib": "aeda13ff26f180f0cc7561a0ad4b083ef82cb35405527dd6db284acafd150d4b",
+    "exec/libstdc++.6.dylib": "630adf7014cb8253e02e2259f745df60f454b8017884cfde7086b218021d3a77",
+    "exec/starter_macos_sp": "73bd2187cbec122022f5bd809567c990037623ff3e3bf95cc80675d54fb7f626",
     "hm_cfg_files/config/CFG/Keyword971/ACCELEROMETER/element_seatbelt_accelerometer.cfg": "65ec52d99b796f2e9a88d8e5a22071040bc76dd20cb1f2d846f8f93e77e0c7a1",
     "hm_cfg_files/config/CFG/Keyword971/AIRBAG/airbag_reference_geometry.cfg": "82dca53b3a44c4c4bf46bc4deaa95dcdf8eab4a9e78a9837104f9fcb12b5146a",
     "hm_cfg_files/config/CFG/Keyword971/AIRBAG/airbag_shell_reference_geometry.cfg": "754205b5bc7ef33c7638bfa3238e0ebd8f74ac00c380335888b4f2404c2b3453",

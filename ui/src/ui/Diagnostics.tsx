@@ -9,7 +9,7 @@ import { isDesktop } from '../io/files';
 
 /** The OpenCourant shipped: their release on Windows (vendor/opencourant/manifest.json);
  *  our own build on a Mac (vendor/opencourant-mac/SOURCE.md). And our report of its slow start. */
-const OC_RELEASE = /Mac/.test(navigator.userAgent) ? 'Mac build 84a0325' : 'latest-20261011';
+const OC_RELEASE = /Mac/.test(navigator.userAgent) ? 'Mac build 4e4233a' : 'latest-20261011';
 const OC_ISSUE = 'https://github.com/OpenCourant/OpenCourant/issues/67';
 
 interface Report {

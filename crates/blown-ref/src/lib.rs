@@ -108,9 +108,8 @@ fn macho_has(b: &[u8], cpu: u32) -> bool {
     false
 }
 
-/// On a Mac: can this program run on this Mac's chip? Our Mac engine is
-/// Apple silicon only until the Intel build joins it (then one universal
-/// set), so an Intel Mac must not offer Reference with it.
+/// On a Mac: can this program run on this Mac's chip? Our Mac engine is one
+/// universal set; an engine without this chip's code must not be offered.
 fn for_this_chip(file: &Path) -> bool {
     if !cfg!(target_os = "macos") {
         return true;
@@ -217,6 +216,11 @@ pub fn target_for(job: &Job) -> Target {
 /// (a Symmetric slice) is quicker on one copy, two threads: the copies spend
 /// their time talking (300 mm square, 1/8 slice, 400 points: 4 x 2 1.6 min,
 /// 1 x 4 1.5, 1 x 2 1.2, 1 x 1 0.8 — half of that is the engine starting).
+/// Mac (no MPI; threads cost more there). MacBook Air M2: 300 mm Symmetric
+/// square 25 s on 1 thread, 97 on 2, 166 on 4 (same piece to 0.002 mm); 500 x
+/// 300 rectangle 855 s on 1, 629 on 2, 559 on 4. Intel on GitHub's virtual Mac:
+/// 300 mm square 34-42 min on 1 thread, slower on each one added; no real Intel
+/// Mac tried yet, so one thread there until one has.
 fn layout(oc: &Path, points: usize) -> (usize, usize) {
     let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4);
     let mpi = has_mpi(oc);
@@ -224,7 +228,9 @@ fn layout(oc: &Path, points: usize) -> (usize, usize) {
         Some((Some(r), Some(t))) if r >= 1 && t >= 1 && (r == 1 || mpi) => return (r, t),
         _ => {}
     }
-    if points < SMALL_MODEL {
+    if cfg!(all(target_os = "macos", target_arch = "x86_64")) || (cfg!(target_os = "macos") && points < SMALL_MODEL) {
+        (1, 1)
+    } else if points < SMALL_MODEL {
         (1, 2.min(cores))
     } else if mpi && cores >= 8 {
         (4, 2)

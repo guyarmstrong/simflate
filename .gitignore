@@ -26,6 +26,9 @@ Thumbs.db
 # Reference solver unpacked from vendor/opencourant for the Windows build
 /src-tauri/resources/opencourant/
 
+# Future plans and client notes: on this laptop only, never committed
+/docs/private/
+
 # Guy's own test exports (not for the repository)
 samples/Test Keyshot OBJ/
 samples/Test save.simflate

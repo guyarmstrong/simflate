@@ -5,6 +5,99 @@ changed underneath, and how it was checked.
 
 ---
 
+## Session 26 — 2026-11-01 / 11-02 · Intel Mac engine: the 20-minute starter fixed; universal engine; 1.1.3 committed
+
+**Guy asked for:** the Intel Mac speed work; whether changes affect solver results; shorter summaries. Client's Mac: M1 2024.
+
+- **The "~70x slower" figure was wrong.** The old test's 25 min limit was nearly all starter (19m43s); the engine had about 5.5 min.
+- **Starter bug:** all samples were in `python_duplicate_nodes`, a loop over a count the no-Python stub never sets (`cpp_python_get_number_of_nodes(int *) {}`). OpenCourant's own main has the same line; its Windows release has real Python, so Windows is not affected. Fork commit a7702bb sets it (and `cpp_python_get_number_elemental_entities`) to 0. Intel starter 20 min -> 7 s. On the shipped arm64 starter the count read 0 on a CI M1 (macOS 15.8.2): luck. macOS 14 check was cancelled by GitHub.
+- **Threads (engine):** virtual machines: 1 thread fastest on both chips (Intel 61/45/33/30 cycles/s on 1-4 threads; M1 174/159/123/115), samples show threads waiting. **That did not hold on the real M2:** 500 x 300 rectangle 855 s on 1, 629 on 2, 559 on 4; Symmetric square 25 / 97 / 166 s. App: 1 thread on Intel Macs and on small models on any Mac; larger models on Apple silicon unchanged.
+- **Flush-to-zero:** no measurable gain in a full run (2251 s against 2057 / 2313 s); dropped. The first 99 v 61 cycles/s was noise.
+- **Universal engine:** 4e4233a, run 41345080291, all 14 files both chips, packed (71 MB). The universal job's check looked for NORMAL TERMINATION, but the starter ends "with warning" on this model; it now looks for the restart file. Version 1.1.3.
+
+**Checked** (final shape, point by point)
+- Test model (7930 points): repeat 1-thread runs byte-identical on each chip; 3 threads vary between runs; across chips and settings max 0.0024 mm, height 120.23 mm.
+- M2 rectangle at the app's stopping height (192.3 mm): 1 v 4 threads max 0.36 mm, mean 0.03; 1 or 4 v 2 threads max 1.1 mm, mean 0.12. Past that, near the end of the deck, gaps reach 26 mm (not what the app stops at). Square at 145 mm: max 0.002 mm.
+- 40 Rust tests + blown-ref 2 + type check; Mac Rust checked for both chips. Not checked: the app on a real Intel Mac, the shape by eye, 1.1.3 installed.
+
+---
+
+## Session 25 — 2026-11-01 · Next-release planning
+
+**Guy asked for:** features for the next release, with the client choosing the direction. No app code changed.
+
+- Planning record is on this laptop only, not in git (Guy): `docs/private/BUILD_REQUIREMENTS.md`, the word-for-word discussion, the 3D inflator files, and the client document prompt.
+- Intel Mac engine speed parked for now.
+- Rule added to `CLAUDE.md`: keep a dated copy before bulk edits of `docs/private/`, as git can't restore it. Learned the hard way when an edit script wiped part of the list; restored and checked.
+
+## Session 24 — 2026-10-31 / 11-01 · Reference on Apple-silicon Macs (1.1.2); Intel engine builds but is slow
+
+**Guy asked for:** carry on with the Mac build; use the time between CI runs;
+test with him on the MacBook (he installed 1.1.2 and ran Reference side by
+side with Windows); run the pre-ship tests he couldn't; then finish so he can
+share both installers.
+
+**Mac engine (fork `guyarmstrong/opencourant-mac`, branch `macos`)**
+- Build 10's reader fallback got the model read, then the starter stopped on
+  `MAT/matl105.cfg`: the open reader didn't know Radioss **2612** (the
+  starter's version) although `hm_cfg_files/config/CFG/radioss2612` ships, so
+  it used the 2026 configs. Added 2612 everywhere the reader lists 2026
+  (`FF_D00_2612`, name maps, folder hierarchy, version order,
+  `getRadiossFileFormatPtr`); the fallback now points at 2612. Upstream main
+  lacks it too. Build 12: **NORMAL TERMINATION**.
+- CI: build folders cached (actions/cache, files dated 2000 except those
+  changed since the cached build; recipes rewritten only when changed):
+  **build step 16 min → 48 s**. Test programs get `</dev/null` and a time
+  limit (the failed starter had hung 30 min); lldb dropped. A "Package for
+  Simflate" folder (exec, hm_cfg_files, licences, BUILD.txt) is an artifact.
+- Matrix build: Apple silicon (macos-15) and **Intel (macos-15-intel)** with
+  the same recipes, `MACOSX_DEPLOYMENT_TARGET=11.0`, minos of every file
+  logged, then a lipo job for a universal set. Intel compiles and computes
+  the same numbers (energies match to 0.03 %) but runs **~70× slower** (12 % of
+  the test model in 20 min); the test timed out, universal skipped.
+
+**Simflate**
+- `scripts/opencourant.mjs pack --mac <folder>`: packs the CI package into
+  `vendor/opencourant-mac/` (36 MB, one piece, manifest of every file),
+  renaming programs chip-neutral (`starter_macos_sp`, `Simflate Reference
+  engine`, `anim_to_vtk_macos`); `unpack` picks the platform, restores the
+  runnable mark on the Mac, and leaves an empty folder when nothing is packed.
+  `tauri.macos.conf.json` bundles it. SOURCE.md for the Mac build.
+- `crates/blown-ref`: platform tag `macos` for both chips; Reference offered
+  only when the engine has code for this Mac's chip (Mach-O header check,
+  `macho_has`, with a test); quarantine mark cleared from the engine folder
+  once per session; leftover engines stopped with `pkill -f` (a Mac keeps 16
+  characters of a process name).
+- Solver list asks the app (`reference_check`) instead of assuming "Mac = no";
+  label "(not on this Mac yet)"; Mac messages say Intel / not in this build.
+- Diagnostics names "Mac build 84a0325" on a Mac. Version **1.1.2**.
+- Share folder: `Windows\Simflate_1.1.2_x64-setup.exe` (built here) and
+  `Mac\Simflate_1.1.2_universal.dmg` (public copy, free Mac minutes); Mac
+  install note updated (Reference on Apple silicon; Intel later).
+
+**Checked**
+- Fork test model, Mac CI vs Windows: 21 energy checkpoints identical to
+  every printed digit; same 111 113 cycles; Mac 8 min (3 threads) vs Windows
+  11¾ min (one engine, 3 threads).
+- Guy's 500 × 300 rectangle, Reference, same settings, MacBook Air M2 app vs
+  Windows dev app: 192.3 mm both (95.1 / −97.1 vs 95.2 / −97.2), footprint
+  472.1 × 285.9 vs 472.0 × 285.9, both stopped at cycle 90 100; Mac ~6 min,
+  Windows ~9½.
+- Symmetric square, same deck on both: every point within **0.001 mm** at
+  t 0.0516 s (145.23 mm).
+- Quarantine on the MacBook: a quarantined engine is killed (exit 137) and
+  Apple's "can't check for malicious software" dialog appears; after Guy's
+  Open Anyway the installed app records 01c3 (approved) and the engine has no
+  mark; Reference ran with no prompts.
+- Mac stop command on a compiled stand-in named "Simflate Reference engine":
+  `pkill -f` stops it. Guy: Restore of Reference / Symmetric examples on the
+  Mac keeps the solver; Copy summary correct (label fixed after).
+- 40 Rust tests + blown-ref 2 + type check; Mac Rust cross-checked
+  (`cargo check --target aarch64-apple-darwin`); gitleaks on the public export
+  (only the known recent.ts key name).
+
+---
+
 ## Session 23 — 2026-10-31 · Mac Reference port compiles; Mac icon, Mac clipboard, Height view, new defaults
 
 **Guy asked for:** carry on with the Mac Reference port (he approved the

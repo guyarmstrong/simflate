@@ -6,8 +6,8 @@ version 3 or later (LICENSE.md; copyright and provenance in COPYRIGHT.md).
 
 OpenCourant publishes no Mac version. The Mac programs shipped with Simflate
 were built from https://github.com/guyarmstrong/opencourant-mac, branch
-`macos`, commit 84a0325579d4158a2e84e1ad63e311dac82abe3a (GitHub Actions run
-41218041420, macOS 15, Apple silicon, Homebrew GCC 16.2). That fork is
+`macos`, commit 4e4233aa4e6169df7d387c156494952517e9ca25 (GitHub Actions run
+41345080291, macOS 15, Apple silicon and Intel joined with lipo, Homebrew GCC 16.2). That fork is
 OpenCourant with the changes needed to build and run on macOS (all listed in
 its history); the complete corresponding source is that commit. Full Blown /
 Studio Vertigo will also provide a copy of that source on request.

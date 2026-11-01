@@ -39,6 +39,7 @@ what's needed.
 | `src-tauri` | Desktop shell (Tauri 2): window, native Save-as. |
 | `ui/src` | React + TS + Three.js. `editor/` 2D board, `viewer/` 3D + looks, `sim/` worker + live store, `library/` snapshots (IndexedDB), `ui/` panels. |
 | `docs/` | `HANDOFF.md`, `BUILD_LOG.md`, `DECISIONS.md`, `PRIOR_ART.md`, `SKETCHUP_SDK.md` |
+| `docs/private/` | On this laptop only, not in git (Guy): `BUILD_REQUIREMENTS.md` (every planned feature with its direction and reasoning), `DISCUSSION_*.md` (word-for-word planning talk), `3d-inflator/` (3D spec, code, notes). Future plans go here, never commit them. Git can't restore this folder: before any scripted or bulk edit, put a dated copy in `docs/private/backups/` without being asked, then check the result. |
 | `HOW_TO_TEST.md` | Guy's plain-English test guide — keep it current. |
 | Render image (Snapshots) | `ui/src/viewer/studio.ts`, `renderStore.ts`, `customHdri.ts`, `ui/src/ui/RenderSection.tsx`, HDRIs in `ui/public/studio/`. |
 

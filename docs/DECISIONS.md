@@ -777,3 +777,31 @@ the new one — don't delete history.
   types needed to recognise Illustrator.
 - **Older Macs:** target macOS 11+ for Apple silicon and Intel (universal via
   `lipo`); check each program's minos in CI.
+
+## Session 24 (Guy)
+
+- **The open reader knows Radioss 2612** (reverses session 23's "fall back to
+  2026"): the 2026 configs point at files only the 2612 folder has
+  (`MAT/matl105.cfg`). The fallback stays for later starters, aimed at 2612.
+- **One chip-neutral set of Mac programs** (`*_macos*`, renamed when packed),
+  meant to be universal (lipo). Until the Intel half is good the set is arm64
+  only, and Simflate reads the Mach-O header so an Intel Mac doesn't offer
+  Reference rather than failing at run time.
+- **Simflate clears the quarantine mark from its own engine folder** (once per
+  session). A quarantined engine is killed with no message; the user's Open
+  Anyway approves the app, not the programs inside it.
+- **Mac engine runs one copy on several threads** (no MPI); stop by full
+  command line (`pkill -f`), since a Mac truncates process names to 16
+  characters.
+- **Fork CI caches build folders** and re-dates sources so only changed files
+  recompile; the cache key holds tool versions and the deployment target.
+- **Intel engine not shipped** while it's ~70× slower than Apple silicon on the
+  same model (results correct). Shipping it as-is would make Reference unusable
+  on the client's Intel Macs. (Session 26: the 70× was a misreading; see below.)
+
+## Session 26 (Guy)
+
+- **Intel engine ships in the universal set** (1.1.3): the slowness was mostly a starter bug, now fixed.
+- **Judge engine threads on real hardware, not CI:** GitHub's virtual Macs said 1 thread was fastest; the real M2 said 4 for larger models.
+- **Mac threads:** 1 on Intel (best measured, repeat runs byte-identical, until a real Intel Mac says otherwise) and on small models on any Mac; larger models on Apple silicon unchanged, so their results stay as shipped.
+- **No flush-to-zero:** no speed gain in a full run, and it would touch the numbers.

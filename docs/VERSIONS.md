@@ -19,3 +19,5 @@ a line below, commit, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
 | 1.1.0 | Simflate v1.10 | 2026-10-26 | Export outline (DXF / SVG), Ctrl+C to Illustrator, Pebble / star tool, reproducible re-runs; nine example forms on a fresh install; snapshots from older versions get their smooth mesh back; Mac app ad-hoc signed. |
 | 1.1.1 | Simflate v1.11 | 2026-10-26 | Short screens: Draft and Inflate tool columns shrink, then go two side by side, before scrolling; Contact view moved beside the Plates eye; plates, their eye and Contact hidden for solvers without plates (Specified geometric, Reference, Symmetric). DWG import (desktop). |
 | 1.1.2 | Simflate v1.12 | 2026-10-31 | Reference and Symmetric on Apple-silicon Macs (our OpenCourant Mac build, same results as Windows); Mac icon without the black tile; Mac clipboard (Illustrator paste); Height view from the seam; Seam stiffness default 50, Edge ripples default 0. |
+
+| 1.1.3 | Simflate v1.13 | 2026-11-02 | Mac only: Reference and Symmetric on Intel Macs (universal engine, Mac build 4e4233a); starter fix for an unset count; one engine thread on Intel Macs and on small models. Windows engine unchanged. |
